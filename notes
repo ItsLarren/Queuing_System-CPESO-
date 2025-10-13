@@ -3,3 +3,9 @@ first when opening the system it will display "Get Your Number Here" then click 
 2nd page will show an option [Mayors Working Permit] and [Mayors Clearance] then after selecting another option will opne 
 3rd option [Newly Hired] and [Renew] when the user click the [Newly Hired] option another page with show
 Newly hired option clicked - will show or display a forms liek name, address and Branngay to be fill up by the user. after bthe user have filled up the form the print number button will be clickable and the number will be printed
+
+
+
+
+
+after printing the page will redirect to the main page.
