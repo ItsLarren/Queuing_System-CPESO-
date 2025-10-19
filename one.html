@@ -1,0 +1,1390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Queuing System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #962929 0%, #550555 100%);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .page {
+            display: none;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        .page.active {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .welcome-container {
+            text-align: center;
+            color: white;
+        }
+
+        .welcome-container h1 {
+            font-size: 3em;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .instruction {
+            font-size: 1.2em;
+            opacity: 0.8;
+            animation: blink 2s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 0.8; }
+            50% { opacity: 0.4; }
+        }
+
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            width: 90%;
+            max-width: 500px;
+        }
+
+        .container h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #333;
+        }
+
+        .button-grid {
+            display: grid;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .service-btn {
+            padding: 20px;
+            font-size: 1.2em;
+            background: #881919;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .service-btn:hover {
+            background: #ac4343 ;
+        }
+
+        .back-btn, .home-btn {
+            padding: 10px 20px;
+            background: #666;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .print-btn {
+            padding: 15px;
+            background: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.1em;
+            width: 100%;
+        }
+
+        .print-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            border-color: #2196F3;
+            outline: none;
+        }
+
+        .button-group {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 10px;
+            margin-top: 30px;
+        }
+
+        .ticket-container {
+            text-align: center;
+        }
+
+        .ticket {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+            border: 2px dashed #333;
+        }
+
+        .ticket-header h2 {
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .ticket-number {
+            font-size: 3em;
+            font-weight: bold;
+            color: #e74c3c;
+            margin: 20px 0;
+            padding: 10px;
+            border: 3px solid #e74c3c;
+            border-radius: 10px;
+        }
+
+        .ticket-details {
+            text-align: left;
+            margin: 20px 0;
+        }
+
+        .ticket-details p {
+            margin: 10px 0;
+            padding: 5px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .ticket-footer {
+            margin-top: 20px;
+            padding-top: 10px;
+            border-top: 2px solid #333;
+            font-style: italic;
+        }
+
+        .reset-section {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #7f8c8d;
+        }
+
+        .reset-btn {
+            background: #e74c3c;
+            color: white;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1em;
+            width: 100%;
+            transition: background 0.3s;
+        }
+
+        .reset-btn:hover {
+            background: #c0392b;
+        }
+
+        .confirm-reset {
+            display: none;
+            margin-top: 15px;
+            padding: 15px;
+            background: #34495e;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .confirm-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .confirm-yes {
+            background: #e74c3c;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .confirm-no {
+            background: #7f8c8d;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            flex: 1;
+        }
+
+        /* Priority client styles */
+        .priority-btn {
+            background: #e67e22 !important;
+            border: 3px solid #d35400 !important;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .priority-btn:hover {
+            background: #f39c12 !important;
+        }
+
+        .priority-btn::before {
+            content: "🕐 PRIORITY";
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: rgba(255,255,255,0.2);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.7em;
+            font-weight: bold;
+        }
+
+        /* Priority ticket styles */
+        .priority-ticket {
+            border: 3px solid #e67e22 !important;
+            background: linear-gradient(135deg, #fffaf0 0%, #ffeaa7 100%) !important;
+        }
+
+        .priority-badge {
+            background: #e67e22;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9em;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+
+        /* Employee panel priority styles */
+        .priority-queue {
+            border-left: 5px solid #e67e22 !important;
+            background: linear-gradient(135deg, #34495e 0%, #2c3e50 100%) !important;
+        }
+
+        .priority-number {
+            color: #e67e22 !important;
+            font-weight: bold;
+        }
+
+        /* Display Monitor Styles */
+        .display-body {
+            font-family: Arial, sans-serif;
+            background: #1a1a1a;
+            color: white;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .display-header {
+            background: #e74c3c;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .display-header h1 {
+            font-size: 3em;
+        }
+
+        .current-serving {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+        }
+
+        .display-current-number {
+            font-size: 8em;
+            font-weight: bold;
+            color: #e74c3c;
+            text-shadow: 0 0 30px rgba(231, 76, 60, 0.7);
+            margin: 20px 0;
+        }
+
+        .display-current-service {
+            font-size: 2em;
+            color: #ecf0f1;
+        }
+
+        .display-queue-list {
+            background: #2c3e50;
+            padding: 20px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .display-queue-list h3 {
+            text-align: center;
+            margin-bottom: 15px;
+            color: #bdc3c7;
+        }
+
+        .display-next-numbers {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .display-next-number {
+            background: #34495e;
+            padding: 15px 25px;
+            border-radius: 10px;
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+
+        .blink {
+            animation: blink 1s infinite;
+        }
+
+        /* Employee Panel Styles */
+        .employee-body {
+            font-family: Arial, sans-serif;
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+        }
+
+        .employee-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .employee-current-number {
+            background: #e74c3c;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .employee-current-number h2 {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+        }
+
+        .employee-display-number {
+            font-size: 4em;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+
+        .employee-control-panel {
+            background: #34495e;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .employee-control-buttons {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .employee-control-btn {
+            padding: 20px;
+            font-size: 1.2em;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.2s, background 0.3s;
+        }
+
+        .employee-control-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .employee-control-btn:active {
+            transform: scale(0.95);
+        }
+
+        .employee-done-btn {
+            background: #27ae60;
+            color: white;
+        }
+
+        .employee-call-btn {
+            background: #f39c12;
+            color: white;
+        }
+
+        .employee-noshow-btn {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .employee-queue-list {
+            background: #2c3e50;
+            padding: 20px;
+            border-radius: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .employee-queue-item {
+            padding: 15px;
+            margin: 10px 0;
+            background: #34495e;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .employee-queue-number {
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+
+        .employee-queue-service {
+            color: #bdc3c7;
+        }
+
+        .employee-status-called {
+            border-left: 5px solid #f39c12;
+        }
+
+        .employee-status-serving {
+            border-left: 5px solid #27ae60;
+        }
+
+        .employee-status-waiting {
+            border-left: 5px solid #3498db;
+        }
+
+        .employee-status-noshow {
+            border-left: 5px solid #95a5a6;
+            opacity: 0.6;
+        }
+
+        /* Admin Panel Styles */
+        .admin-body {
+            font-family: Arial, sans-serif;
+            background: #34495e;
+            color: white;
+            padding: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .admin-container {
+            background: #2c3e50;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        .admin-stats {
+            background: #34495e;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            text-align: left;
+        }
+
+        .admin-auto-reset-btn {
+            background: #3498db;
+        }
+
+        .admin-auto-reset-btn:hover {
+            background: #2980b9;
+        }
+
+        .admin-confirm-dialog {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            background: #34495e;
+            border-radius: 10px;
+        }
+
+        .admin-confirm-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .admin-confirm-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .admin-confirm-yes {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .admin-confirm-no {
+            background: #7f8c8d;
+            color: white;
+        }
+
+        .admin-success-message {
+            display: none;
+            background: #27ae60;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Main Queuing System -->
+    <div id="welcome-page" class="page active">
+        <div class="welcome-container">
+            <h1>Get Your Number Here</h1>
+            <p class="instruction">Touch anywhere to continue</p>
+        </div>
+    </div>
+
+    <div id="service-page" class="page">
+        <div class="container">
+            <h2>Select Service</h2>
+            <div class="button-grid">
+                <button class="service-btn" onclick="selectService('Mayors Working Permit')">
+                    Mayors Working Permit
+                </button>
+                <button class="service-btn" onclick="selectService('Mayors Clearance')">
+                    Mayors Clearance
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="subservice-page" class="page">
+        <div class="container">
+            <h2 id="subservice-title">Select Option</h2>
+            <div class="button-grid">
+                <button class="service-btn" onclick="selectSubService('Newly Hired')">
+                    Newly Hired
+                </button>
+                <button class="service-btn" onclick="selectSubService('Renew')">
+                    Renew
+                </button>
+            </div>
+            <button class="back-btn" onclick="goBack()">Back</button>
+        </div>
+    </div>
+
+    <div id="client-type-page" class="page">
+        <div class="container">
+            <h2>Select Client Type</h2>
+            <div class="button-grid">
+                <button class="service-btn priority-btn" onclick="selectClientType('Senior/PWD')">
+                    👵 Senior Citizen / ♿ PWD
+                </button>
+                <button class="service-btn" onclick="selectClientType('Regular')">
+                    Regular Client
+                </button>
+            </div>
+            <button class="back-btn" onclick="goBack()">Back</button>
+        </div>
+    </div>
+
+    <div id="form-page" class="page">
+        <div class="container">
+            <h2>Please Fill Up the Form</h2>
+            <form id="customer-form">
+                <div class="form-group">
+                    <label for="name">Full Name:</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="address">Address:</label>
+                    <input type="text" id="address" name="address" required placeholder="HOUSE NO., STREET, VILLAGE">
+                </div>
+                <div class="form-group">
+                    <label for="barangay">Barangay:</label>
+                    <select id="barangay" name="barangay" required>
+                        <option value="">Select Barangay</option>
+                        <option value="Alasa">Alasa</option>
+                        <option value="Baliti">Baliti</option>
+                        <option value="Bulaon">Bulaon</option>
+                        <option value="Calulut">Calulut</option>
+                        <option value="Del Carmen">Del Carmen</option>
+                        <option value="Del Pilar">Del Pilar</option>
+                        <option value="Del Rosario">Del Rosario</option>
+                        <option value="Dela Paz Norte">Dela Paz Norte</option>
+                        <option value="Dela Paz Sur">Dela Paz Sur</option>
+                        <option value="Dolores">Dolores</option>
+                        <option value="Juliana">Juliana</option>
+                        <option value="Lara">Lara</option>
+                        <option value="Lourdes">Lourdes</option>
+                        <option value="Magliman">Magliman</option>
+                        <option value="Maimpis">Maimpis</option>
+                        <option value="Malino">Malino</option>
+                        <option value="Malpitic">Malpitic</option>
+                        <option value="Pandaras">Pandaras</option>
+                        <option value="Panipuan">Panipuan</option>
+                        <option value="Pulung Bulu">Pulung Bulu</option>
+                        <option value="Quebiauan">Quebiauan</option>
+                        <option value="Saguin">Saguin</option>
+                        <option value="San Agustin">San Agustin</option>
+                        <option value="San Felipe">San Felipe</option>
+                        <option value="San Isidro">San Isidro</option>
+                        <option value="San Jose">San Jose</option>
+                        <option value="San Juan">San Juan</option>
+                        <option value="San Nicolas">San Nicolas</option>
+                        <option value="San Pedro">San Pedro</option>
+                        <option value="Santa Lucia">Santa Lucia</option>
+                        <option value="Santa Teresita">Santa Teresita</option>
+                        <option value="Santo Niño">Santo Niño</option>
+                        <option value="Santo Rosario">Santo Rosario</option>
+                        <option value="Sindalan">Sindalan</option>
+                        <option value="Telebastagan">Telebastagan</option>      
+                    </select>
+                </div>
+                <div class="button-group">
+                    <button type="button" class="back-btn" onclick="goBack()">Back</button>
+                    <button type="button" id="print-btn" class="print-btn" disabled onclick="generateTicket()">
+                        Print Number
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="ticket-page" class="page">
+        <div class="ticket-container">
+            <div class="ticket" id="printed-ticket">
+                <div class="ticket-header">
+                    <h2>OFFICE OF THE MAYOR</h2>
+                    <p>Queuing Ticket</p>
+                </div>
+                <div class="ticket-body">
+                    <div class="ticket-number">
+                        <span id="queue-number">A001</span>
+                    </div>
+                    <div class="ticket-details">
+                        <p><strong>Service:</strong> <span id="ticket-service"></span></p>
+                        <p><strong>Type:</strong> <span id="ticket-type"></span></p>
+                        <p><strong>Name:</strong> <span id="ticket-name"></span></p>
+                        <p><strong>Barangay:</strong> <span id="ticket-barangay"></span></p>
+                        <p><strong>Date:</strong> <span id="ticket-date"></span></p>
+                    </div>
+                </div>
+                <div class="ticket-footer">
+                    <p>Please wait for your number to be called</p>
+                </div>
+            </div>
+            <button class="home-btn" onclick="goToWelcome()">Get Another Number</button>
+        </div>
+    </div>
+
+    <!-- Display Monitor -->
+    <div id="display-page" class="page">
+        <div class="display-body">
+            <div class="display-header">
+                <h1>NOW SERVING</h1>
+            </div>
+
+            <div class="current-serving">
+                <div class="display-current-number" id="display-current-number">---</div>
+                <div class="display-current-service" id="display-current-service"></div>
+            </div>
+
+            <div class="display-queue-list">
+                <h3>Next Numbers</h3>
+                <div class="display-next-numbers" id="display-next-numbers">
+                    <!-- Next numbers will appear here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Employee Panel -->
+    <div id="employee-page" class="page">
+        <div class="employee-body">
+            <div class="employee-container">
+                <div class="employee-current-number">
+                    <h2>NOW SERVING</h2>
+                    <div class="employee-display-number" id="employee-display-number">---</div>
+                    <p id="employee-current-service"></p>
+                </div>
+
+                <div class="employee-control-panel">
+                    <div class="employee-control-buttons">
+                        <button class="employee-control-btn employee-done-btn" onclick="markDone()">
+                            ✅ Done
+                        </button>
+                        <button class="employee-control-btn employee-call-btn" onclick="callNext()">
+                            🔔 Call Next
+                        </button>
+                        <button class="employee-control-btn employee-noshow-btn" onclick="markNoShow()">
+                            ❌ No Show
+                        </button>
+                    </div>
+
+                    <h3>Queue List</h3>
+                    <div class="employee-queue-list" id="employee-queue-list">
+                        <!-- Queue items will be dynamically added here -->
+                    </div>
+
+                    <div class="reset-section">
+                        <button class="reset-btn" onclick="showResetConfirmation()">
+                            🔄 Reset System for Tomorrow
+                        </button>
+                        <div class="confirm-reset" id="confirm-reset">
+                            <p>Are you sure you want to reset the system? This will clear all queue data and start fresh.</p>
+                            <div class="confirm-buttons">
+                                <button class="confirm-yes" onclick="resetSystem()">Yes, Reset</button>
+                                <button class="confirm-no" onclick="hideResetConfirmation()">Cancel</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Panel -->
+    <div id="admin-page" class="page">
+        <div class="admin-body">
+            <div class="admin-container">
+                <h1>System Administration</h1>
+                
+                <div class="admin-stats" id="system-stats">
+                    <h3>Current System Status</h3>
+                    <p id="queue-count">Loading...</p>
+                    <p id="serving-number">Loading...</p>
+                    <p id="last-reset">Loading...</p>
+                </div>
+
+                <button class="reset-btn" onclick="showAdminResetConfirmation()">
+                    🔄 Reset System for Tomorrow
+                </button>
+
+                <button class="reset-btn admin-auto-reset-btn" onclick="enableAutoReset()">
+                    ⚙️ Enable Auto Daily Reset
+                </button>
+
+                <div class="admin-confirm-dialog" id="admin-confirm-dialog">
+                    <p><strong>Are you sure you want to reset the system?</strong></p>
+                    <p>This will:</p>
+                    <ul style="text-align: left; margin: 10px 0; padding-left: 20px;">
+                        <li>Clear all queue data</li>
+                        <li>Reset all numbers to 001</li>
+                        <li>Clear current serving number</li>
+                    </ul>
+                    <p>This action cannot be undone.</p>
+                    <div class="admin-confirm-buttons">
+                        <button class="admin-confirm-btn admin-confirm-yes" onclick="adminResetSystem()">Yes, Reset System</button>
+                        <button class="admin-confirm-btn admin-confirm-no" onclick="hideAdminResetConfirmation()">Cancel</button>
+                    </div>
+                </div>
+
+                <div class="admin-success-message" id="admin-success-message">
+                    ✅ System has been reset successfully!
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation Menu (Hidden by default) -->
+    <div id="nav-menu" style="position: fixed; top: 10px; left: 10px; z-index: 1000; display: none;">
+        <button onclick="showSystem('welcome')" style="margin: 2px; padding: 5px 10px;">Client Kiosk</button>
+        <button onclick="showSystem('display')" style="margin: 2px; padding: 5px 10px;">Display</button>
+        <button onclick="showSystem('employee')" style="margin: 2px; padding: 5px 10px;">Employee</button>
+        <button onclick="showSystem('admin')" style="margin: 2px; padding: 5px 10px;">Admin</button>
+    </div>
+
+    <audio id="bell-sound" src="bell.mp3" preload="auto"></audio>
+
+    <script>
+        // Global variables
+        let currentService = '';
+        let currentSubService = '';
+        let currentClientType = '';
+
+        // Initialize queue numbers with persistence
+        function initializeQueueNumbers() {
+            const saved = localStorage.getItem('queueNumbers');
+            if (saved) {
+                return JSON.parse(saved);
+            } else {
+                return {
+                    'Mayors Working Permit': { 
+                        'Newly Hired': { 'Senior/PWD': 1, 'Regular': 1 },
+                        'Renew': { 'Senior/PWD': 1, 'Regular': 1 }
+                    },
+                    'Mayors Clearance': { 
+                        'Newly Hired': { 'Senior/PWD': 1, 'Regular': 1 },
+                        'Renew': { 'Senior/PWD': 1, 'Regular': 1 }
+                    }
+                };
+            }
+        }
+
+        let queueNumbers = initializeQueueNumbers();
+        let currentQueue = JSON.parse(localStorage.getItem('currentQueue') || '[]');
+        let servingIndex = parseInt(localStorage.getItem('servingIndex') || '-1');
+
+        // Show navigation menu (for development)
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'm') {
+                document.getElementById('nav-menu').style.display = 
+                    document.getElementById('nav-menu').style.display === 'none' ? 'block' : 'none';
+            }
+        });
+
+        // System navigation
+        function showSystem(system) {
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            document.getElementById(system + '-page').classList.add('active');
+            
+            if (system === 'display') {
+                updateClientDisplay();
+            } else if (system === 'employee') {
+                updateEmployeeDisplay();
+            } else if (system === 'admin') {
+                updateAdminStats();
+            }
+        }
+
+        // Main Queuing System Functions
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            document.getElementById(pageId).classList.add('active');
+        }
+
+        document.getElementById('welcome-page').addEventListener('click', function() {
+            showPage('service-page');
+        });
+
+        function selectService(service) {
+            currentService = service;
+            document.getElementById('subservice-title').textContent = service;
+            showPage('subservice-page');
+        }
+
+        function selectSubService(subService) {
+            currentSubService = subService;
+            showPage('client-type-page');
+        }
+
+        function selectClientType(clientType) {
+            currentClientType = clientType;
+            showPage('form-page');
+            setupFormValidation();
+        }
+
+        function goBack() {
+            if (document.getElementById('form-page').classList.contains('active')) {
+                showPage('client-type-page');
+            } else if (document.getElementById('client-type-page').classList.contains('active')) {
+                showPage('subservice-page');
+            } else if (document.getElementById('subservice-page').classList.contains('active')) {
+                showPage('service-page');
+            }
+        }
+
+        function goToWelcome() {
+            showPage('welcome-page');
+        }
+
+        function setupFormValidation() {
+            const form = document.getElementById('customer-form');
+            const printBtn = document.getElementById('print-btn');
+            const inputs = form.querySelectorAll('input, select');
+            
+            function checkFormValidity() {
+                let allValid = true;
+                inputs.forEach(input => {
+                    if (!input.checkValidity()) {
+                        allValid = false;
+                    }
+                });
+                printBtn.disabled = !allValid;
+            }
+            
+            inputs.forEach(input => {
+                input.addEventListener('input', checkFormValidity);
+                input.addEventListener('change', checkFormValidity);
+            });
+            
+            checkFormValidity();
+        }
+
+        function generateTicket() {
+            const formData = {
+                name: document.getElementById('name').value,
+                address: document.getElementById('address').value,
+                barangay: document.getElementById('barangay').value
+            };
+            
+            const prefix = currentService === 'Mayors Working Permit' ? 'MWP' : 'MCL';
+            const typeCode = currentSubService === 'Newly Hired' ? 'N' : 'R';
+            const priorityCode = currentClientType === 'Senior/PWD' ? 'P' : 'R';
+            const number = queueNumbers[currentService][currentSubService][currentClientType];
+            
+            const queueNumber = `${prefix}${typeCode}${priorityCode}${number.toString().padStart(3, '0')}`;
+            
+            queueNumbers[currentService][currentSubService][currentClientType]++;
+            
+            const ticketData = {
+                queueNumber: queueNumber,
+                service: currentService,
+                subService: currentSubService,
+                clientType: currentClientType,
+                name: formData.name,
+                barangay: formData.barangay
+            };
+
+            addToQueue(ticketData);
+            
+            const ticketElement = document.getElementById('printed-ticket');
+            const queueNumberElement = document.getElementById('queue-number');
+            
+            if (currentClientType === 'Senior/PWD') {
+                ticketElement.classList.add('priority-ticket');
+                queueNumberElement.classList.add('priority-number');
+            } else {
+                ticketElement.classList.remove('priority-ticket');
+                queueNumberElement.classList.remove('priority-number');
+            }
+            
+            document.getElementById('queue-number').textContent = queueNumber;
+            document.getElementById('ticket-service').textContent = currentService;
+            document.getElementById('ticket-type').textContent = currentSubService;
+            
+            const clientTypeElement = document.createElement('p');
+            clientTypeElement.innerHTML = `<strong>Client Type:</strong> <span id="ticket-client-type">${currentClientType}</span>`;
+            if (currentClientType === 'Senior/PWD') {
+                clientTypeElement.innerHTML = `<strong>Client Type:</strong> <span class="priority-badge">${currentClientType}</span>`;
+            }
+            
+            const ticketDetails = document.querySelector('.ticket-details');
+            const existingClientType = document.getElementById('ticket-client-type');
+            if (existingClientType) {
+                existingClientType.parentElement.remove();
+            }
+            const serviceElement = document.querySelector('#ticket-service').parentElement;
+            serviceElement.parentNode.insertBefore(clientTypeElement, serviceElement.nextSibling);
+            
+            document.getElementById('ticket-name').textContent = formData.name;
+            document.getElementById('ticket-barangay').textContent = formData.barangay;
+            document.getElementById('ticket-date').textContent = new Date().toLocaleDateString();
+            
+            showPage('ticket-page');
+            
+            setTimeout(() => {
+                window.print();
+            }, 500);
+            
+            document.getElementById('customer-form').reset();
+            localStorage.setItem('queueNumbers', JSON.stringify(queueNumbers));
+        }
+
+        function addToQueue(ticketData) {
+            const queueItem = {
+                number: ticketData.queueNumber,
+                service: ticketData.service,
+                type: ticketData.subService,
+                clientType: ticketData.clientType,
+                name: ticketData.name,
+                barangay: ticketData.barangay,
+                timestamp: new Date().toISOString(),
+                called: false,
+                completed: false,
+                noshow: false,
+                isPriority: ticketData.clientType === 'Senior/PWD'
+            };
+
+            currentQueue.push(queueItem);
+            localStorage.setItem('currentQueue', JSON.stringify(currentQueue));
+            localStorage.setItem('queueUpdated', Date.now().toString());
+            
+            // Update displays
+            updateClientDisplay();
+            updateEmployeeDisplay();
+        }
+
+        // Display Monitor Functions
+        function updateClientDisplay() {
+            const currentNumber = document.getElementById('display-current-number');
+            const currentService = document.getElementById('display-current-service');
+            const nextNumbers = document.getElementById('display-next-numbers');
+
+            if (servingIndex >= 0 && currentQueue[servingIndex]) {
+                const current = currentQueue[servingIndex];
+                currentNumber.textContent = current.number;
+                currentNumber.classList.add('blink');
+                currentService.textContent = `${current.service} - ${current.type}${current.isPriority ? ' 👵♿' : ''}`;
+            } else {
+                currentNumber.textContent = '---';
+                currentNumber.classList.remove('blink');
+                currentService.textContent = '';
+            }
+
+            const priorityNext = currentQueue
+                .filter((item, index) => index > servingIndex && !item.completed && !item.noshow && item.isPriority)
+                .slice(0, 2);
+                
+            const regularNext = currentQueue
+                .filter((item, index) => index > servingIndex && !item.completed && !item.noshow && !item.isPriority)
+                .slice(0, 3);
+
+            nextNumbers.innerHTML = '';
+            
+            priorityNext.forEach(item => {
+                const nextElement = document.createElement('div');
+                nextElement.className = 'display-next-number priority-number';
+                nextElement.textContent = `${item.number} 👵`;
+                nextNumbers.appendChild(nextElement);
+            });
+            
+            regularNext.forEach(item => {
+                const nextElement = document.createElement('div');
+                nextElement.className = 'display-next-number';
+                nextElement.textContent = item.number;
+                nextNumbers.appendChild(nextElement);
+            });
+        }
+
+        // Employee Panel Functions
+        function updateEmployeeDisplay() {
+            const displayNumber = document.getElementById('employee-display-number');
+            const currentService = document.getElementById('employee-current-service');
+            const queueList = document.getElementById('employee-queue-list');
+
+            if (servingIndex >= 0 && currentQueue[servingIndex]) {
+                const current = currentQueue[servingIndex];
+                displayNumber.textContent = current.number;
+                displayNumber.className = current.isPriority ? 'employee-display-number priority-number' : 'employee-display-number';
+                currentService.textContent = `${current.service} - ${current.type}${current.isPriority ? ' 👵♿' : ''}`;
+            } else {
+                displayNumber.textContent = '---';
+                displayNumber.className = 'employee-display-number';
+                currentService.textContent = '';
+            }
+
+            queueList.innerHTML = '';
+            
+            const priorityQueue = currentQueue.filter(item => item.isPriority && !item.completed && !item.noshow);
+            const regularQueue = currentQueue.filter(item => !item.isPriority && !item.completed && !item.noshow);
+            
+            if (priorityQueue.length > 0) {
+                const priorityHeader = document.createElement('div');
+                priorityHeader.className = 'employee-queue-item';
+                priorityHeader.innerHTML = `<div style="text-align: center; width: 100%; font-weight: bold; color: #e67e22;">
+                    👵 SENIOR CITIZEN / ♿ PWD QUEUE
+                </div>`;
+                queueList.appendChild(priorityHeader);
+                
+                priorityQueue.forEach((item) => {
+                    addEmployeeQueueItem(item, queueList, true);
+                });
+            }
+            
+            if (regularQueue.length > 0) {
+                const regularHeader = document.createElement('div');
+                regularHeader.className = 'employee-queue-item';
+                regularHeader.innerHTML = `<div style="text-align: center; width: 100%; font-weight: bold; color: #3498db;">
+                    REGULAR QUEUE
+                </div>`;
+                queueList.appendChild(regularHeader);
+                
+                regularQueue.forEach((item) => {
+                    addEmployeeQueueItem(item, queueList, false);
+                });
+            }
+
+            localStorage.setItem('lastUpdate', Date.now().toString());
+        }
+
+        function addEmployeeQueueItem(item, queueList, isPriority) {
+            const queueItem = document.createElement('div');
+            const isServing = currentQueue.indexOf(item) === servingIndex;
+            
+            queueItem.className = `employee-queue-item ${isServing ? 'employee-status-serving' : 
+                item.called ? 'employee-status-called' : 'employee-status-waiting'} ${isPriority ? 'priority-queue' : ''}`;
+            
+            queueItem.innerHTML = `
+                <div>
+                    <div class="employee-queue-number ${isPriority ? 'priority-number' : ''}">${item.number}</div>
+                    <div class="employee-queue-service">${item.service} - ${item.type}</div>
+                    ${isPriority ? '<div style="color: #e67e22; font-size: 0.9em;">👵 Senior/PWD</div>' : ''}
+                </div>
+                <div>${item.name}</div>
+            `;
+            
+            queueList.appendChild(queueItem);
+        }
+
+        function callNext() {
+            const nextIndex = currentQueue.findIndex((item, index) => 
+                index > servingIndex && !item.noshow && !item.completed);
+            
+            if (nextIndex !== -1) {
+                servingIndex = nextIndex;
+                currentQueue[servingIndex].called = true;
+                localStorage.setItem('servingIndex', servingIndex);
+                localStorage.setItem('currentQueue', JSON.stringify(currentQueue));
+                
+                const bellSound = document.getElementById('bell-sound');
+                if (bellSound) {
+                    bellSound.play().catch(e => console.log('Audio play failed:', e));
+                }
+                
+                speakNumber(currentQueue[servingIndex].number);
+                
+                updateEmployeeDisplay();
+                updateClientDisplay();
+            } else {
+                servingIndex = -1;
+                localStorage.setItem('servingIndex', servingIndex);
+                updateEmployeeDisplay();
+                updateClientDisplay();
+            }
+        }
+
+        function markDone() {
+            if (servingIndex >= 0 && currentQueue[servingIndex]) {
+                currentQueue[servingIndex].completed = true;
+                localStorage.setItem('currentQueue', JSON.stringify(currentQueue));
+                callNext();
+            }
+        }
+
+        function markNoShow() {
+            if (servingIndex >= 0 && currentQueue[servingIndex]) {
+                currentQueue[servingIndex].noshow = true;
+                localStorage.setItem('currentQueue', JSON.stringify(currentQueue));
+                callNext();
+            }
+        }
+
+        function speakNumber(number) {
+            if ('speechSynthesis' in window) {
+                const speech = new SpeechSynthesisUtterance();
+                speech.text = `Number ${number.split('').join(' ')} please proceed to counter`;
+                speech.volume = 1;
+                speech.rate = 0.8;
+                speech.pitch = 1;
+                window.speechSynthesis.speak(speech);
+            }
+        }
+
+        function showResetConfirmation() {
+            document.getElementById('confirm-reset').style.display = 'block';
+        }
+
+        function hideResetConfirmation() {
+            document.getElementById('confirm-reset').style.display = 'none';
+        }
+
+        function resetSystem() {
+            localStorage.removeItem('currentQueue');
+            localStorage.removeItem('servingIndex');
+            localStorage.removeItem('lastUpdate');
+            localStorage.removeItem('queueUpdated');
+            localStorage.removeItem('lastResetDate');
+            
+            localStorage.setItem('queueNumbers', JSON.stringify({
+                'Mayors Working Permit': { 
+                    'Newly Hired': { 'Senior/PWD': 1, 'Regular': 1 },
+                    'Renew': { 'Senior/PWD': 1, 'Regular': 1 }
+                },
+                'Mayors Clearance': { 
+                    'Newly Hired': { 'Senior/PWD': 1, 'Regular': 1 },
+                    'Renew': { 'Senior/PWD': 1, 'Regular': 1 }
+                }
+            }));
+            
+            currentQueue = [];
+            servingIndex = -1;
+            
+            hideResetConfirmation();
+            updateEmployeeDisplay();
+            updateClientDisplay();
+            alert('System has been reset successfully! Ready for tomorrow.');
+            localStorage.setItem('systemReset', Date.now().toString());
+        }
+
+        // Admin Panel Functions
+        function updateAdminStats() {
+            const lastReset = localStorage.getItem('lastResetDate') || 'Never';
+            const queueNumbers = JSON.parse(localStorage.getItem('queueNumbers') || '{}');
+
+            document.getElementById('queue-count').textContent = `Queue Length: ${currentQueue.length} tickets`;
+            document.getElementById('last-reset').textContent = `Last Reset: ${lastReset}`;
+            
+            if (servingIndex >= 0 && currentQueue[servingIndex]) {
+                document.getElementById('serving-number').textContent = `Now Serving: ${currentQueue[servingIndex].number}`;
+            } else {
+                document.getElementById('serving-number').textContent = 'Now Serving: ---';
+            }
+        }
+
+        function showAdminResetConfirmation() {
+            document.getElementById('admin-confirm-dialog').style.display = 'block';
+        }
+
+        function hideAdminResetConfirmation() {
+            document.getElementById('admin-confirm-dialog').style.display = 'none';
+        }
+
+        function adminResetSystem() {
+            localStorage.removeItem('currentQueue');
+            localStorage.removeItem('servingIndex');
+            localStorage.removeItem('lastUpdate');
+            localStorage.removeItem('queueUpdated');
+            
+            const today = new Date().toDateString();
+            localStorage.setItem('lastResetDate', today);
+            
+            const resetQueueNumbers = {
+                'Mayors Working Permit': { 
+                    'Newly Hired': { 'Senior/PWD': 1, 'Regular': 1 },
+                    'Renew': { 'Senior/PWD': 1, 'Regular': 1 }
+                },
+                'Mayors Clearance': { 
+                    'Newly Hired': { 'Senior/PWD': 1, 'Regular': 1 },
+                    'Renew': { 'Senior/PWD': 1, 'Regular': 1 }
+                }
+            };
+            localStorage.setItem('queueNumbers', JSON.stringify(resetQueueNumbers));
+            
+            queueNumbers = resetQueueNumbers;
+            currentQueue = [];
+            servingIndex = -1;
+            
+            hideAdminResetConfirmation();
+            document.getElementById('admin-success-message').style.display = 'block';
+            updateAdminStats();
+            updateEmployeeDisplay();
+            updateClientDisplay();
+            
+            setTimeout(() => {
+                document.getElementById('admin-success-message').style.display = 'none';
+            }, 3000);
+        }
+
+        function enableAutoReset() {
+            const today = new Date().toDateString();
+            localStorage.setItem('lastResetDate', today);
+            localStorage.setItem('autoResetEnabled', 'true');
+            alert('Auto daily reset enabled! System will reset automatically each day.');
+        }
+
+        // Daily reset function
+        function checkAndResetDaily() {
+            const today = new Date().toDateString();
+            const lastReset = localStorage.getItem('lastResetDate');
+            
+            if (lastReset !== today) {
+                queueNumbers = {
+                    'Mayors Working Permit': { 
+                        'Newly Hired': { 'Senior/PWD': 1, 'Regular': 1 },
+                        'Renew': { 'Senior/PWD': 1, 'Regular': 1 }
+                    },
+                    'Mayors Clearance': { 
+                        'Newly Hired': { 'Senior/PWD': 1, 'Regular': 1 },
+                        'Renew': { 'Senior/PWD': 1, 'Regular': 1 }
+                    }
+                };
+                
+                localStorage.removeItem('currentQueue');
+                localStorage.removeItem('servingIndex');
+                localStorage.removeItem('lastUpdate');
+                localStorage.removeItem('queueUpdated');
+                
+                localStorage.setItem('lastResetDate', today);
+                localStorage.setItem('queueNumbers', JSON.stringify(queueNumbers));
+                
+                currentQueue = [];
+                servingIndex = -1;
+                
+                console.log('System reset for new day:', today);
+            }
+        }
+
+        // Event listeners for storage updates
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'currentQueue' || e.key === 'servingIndex' || e.key === 'lastUpdate') {
+                currentQueue = JSON.parse(localStorage.getItem('currentQueue') || '[]');
+                servingIndex = parseInt(localStorage.getItem('servingIndex') || '-1');
+                updateClientDisplay();
+                updateEmployeeDisplay();
+                updateAdminStats();
+            }
+        });
+
+        // Periodic updates
+        setInterval(() => {
+            const newQueue = JSON.parse(localStorage.getItem('currentQueue') || '[]');
+            const newIndex = parseInt(localStorage.getItem('servingIndex') || '-1');
+            
+            if (JSON.stringify(newQueue) !== JSON.stringify(currentQueue) || newIndex !== servingIndex) {
+                currentQueue = newQueue;
+                servingIndex = newIndex;
+                updateClientDisplay();
+                updateEmployeeDisplay();
+                updateAdminStats();
+            }
+        }, 1000);
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAndResetDaily();
+            showPage('welcome-page');
+            updateClientDisplay();
+            updateEmployeeDisplay();
+            updateAdminStats();
+        });
+    </script>
+</body>
+</html>
