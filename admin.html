@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - System Reset</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #34495e;
+            color: white;
+            padding: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .admin-container {
+            background: #2c3e50;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        h1 {
+            margin-bottom: 30px;
+            color: #e74c3c;
+        }
+
+        .stats {
+            background: #34495e;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            text-align: left;
+        }
+
+        .stats h3 {
+            margin-bottom: 15px;
+            color: #ecf0f1;
+        }
+
+        .reset-btn {
+            background: #e74c3c;
+            color: white;
+            padding: 20px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1.2em;
+            width: 100%;
+            margin: 10px 0;
+            transition: background 0.3s;
+        }
+
+        .reset-btn:hover {
+            background: #c0392b;
+        }
+
+        .auto-reset-btn {
+            background: #3498db;
+        }
+
+        .auto-reset-btn:hover {
+            background: #2980b9;
+        }
+
+        .confirm-dialog {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            background: #34495e;
+            border-radius: 10px;
+        }
+
+        .confirm-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .confirm-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .confirm-yes {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .confirm-no {
+            background: #7f8c8d;
+            color: white;
+        }
+
+        .success-message {
+            display: none;
+            background: #27ae60;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <h1>System Administration</h1>
+        
+        <div class="stats" id="system-stats">
+            <h3>Current System Status</h3>
+            <p id="queue-count">Loading...</p>
+            <p id="serving-number">Loading...</p>
+            <p id="last-reset">Loading...</p>
+        </div>
+
+        <button class="reset-btn" onclick="showResetConfirmation()">
+            🔄 Reset System for Tomorrow
+        </button>
+
+        <button class="reset-btn auto-reset-btn" onclick="enableAutoReset()">
+            ⚙️ Enable Auto Daily Reset
+        </button>
+
+        <div class="confirm-dialog" id="confirm-dialog">
+            <p><strong>Are you sure you want to reset the system?</strong></p>
+            <p>This will:</p>
+            <ul style="text-align: left; margin: 10px 0; padding-left: 20px;">
+                <li>Clear all queue data</li>
+                <li>Reset all numbers to 001</li>
+                <li>Clear current serving number</li>
+            </ul>
+            <p>This action cannot be undone.</p>
+            <div class="confirm-buttons">
+                <button class="confirm-btn confirm-yes" onclick="resetSystem()">Yes, Reset System</button>
+                <button class="confirm-btn confirm-no" onclick="hideResetConfirmation()">Cancel</button>
+            </div>
+        </div>
+
+        <div class="success-message" id="success-message">
+            ✅ System has been reset successfully!
+        </div>
+    </div>
+
+    <script>
+        function updateStats() {
+            const currentQueue = JSON.parse(localStorage.getItem('currentQueue') || '[]');
+            const servingIndex = parseInt(localStorage.getItem('servingIndex') || '-1');
+            const lastReset = localStorage.getItem('lastResetDate') || 'Never';
+            const queueNumbers = JSON.parse(localStorage.getItem('queueNumbers') || '{}');
+
+            document.getElementById('queue-count').textContent = `Queue Length: ${currentQueue.length} tickets`;
+            document.getElementById('last-reset').textContent = `Last Reset: ${lastReset}`;
+            
+            if (servingIndex >= 0 && currentQueue[servingIndex]) {
+                document.getElementById('serving-number').textContent = `Now Serving: ${currentQueue[servingIndex].number}`;
+            } else {
+                document.getElementById('serving-number').textContent = 'Now Serving: ---';
+            }
+        }
+
+        function showResetConfirmation() {
+            document.getElementById('confirm-dialog').style.display = 'block';
+        }
+
+        function hideResetConfirmation() {
+            document.getElementById('confirm-dialog').style.display = 'none';
+        }
+
+        function resetSystem() {
+            // Clear all queue data
+            localStorage.removeItem('currentQueue');
+            localStorage.removeItem('servingIndex');
+            localStorage.removeItem('lastUpdate');
+            localStorage.removeItem('queueUpdated');
+            
+            // Set reset date to today
+            const today = new Date().toDateString();
+            localStorage.setItem('lastResetDate', today);
+            
+            // Reset queue numbers
+            const resetQueueNumbers = {
+                'Mayors Working Permit': { 'Newly Hired': 1, 'Renew': 1 },
+                'Mayors Clearance': { 'Newly Hired': 1, 'Renew': 1 }
+            };
+            localStorage.setItem('queueNumbers', JSON.stringify(resetQueueNumbers));
+            
+            // Hide confirmation and show success
+            hideResetConfirmation();
+            document.getElementById('success-message').style.display = 'block';
+            
+            // Update stats
+            updateStats();
+            
+            // Auto hide success message
+            setTimeout(() => {
+                document.getElementById('success-message').style.display = 'none';
+            }, 3000);
+        }
+
+        function enableAutoReset() {
+            const today = new Date().toDateString();
+            localStorage.setItem('lastResetDate', today);
+            localStorage.setItem('autoResetEnabled', 'true');
+            alert('Auto daily reset enabled! System will reset automatically each day.');
+        }
+
+        // Update stats every 2 seconds
+        setInterval(updateStats, 2000);
+        
+        // Initial stats update
+        updateStats();
+    </script>
+</body>
+</html>

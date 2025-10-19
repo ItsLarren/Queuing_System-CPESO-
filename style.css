@@ -184,3 +184,112 @@ body {
     border-top: 2px solid #333;
     font-style: italic;
 }
+
+.reset-section {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 2px solid #7f8c8d;
+}
+
+.reset-btn {
+    background: #e74c3c;
+    color: white;
+    padding: 15px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1.1em;
+    width: 100%;
+    transition: background 0.3s;
+}
+
+.reset-btn:hover {
+    background: #c0392b;
+}
+
+.confirm-reset {
+    display: none;
+    margin-top: 15px;
+    padding: 15px;
+    background: #34495e;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.confirm-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.confirm-yes {
+    background: #e74c3c;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    flex: 1;
+}
+
+.confirm-no {
+    background: #7f8c8d;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    flex: 1;
+}
+
+/* Priority client styles */
+.priority-btn {
+    background: #e67e22 !important;
+    border: 3px solid #d35400 !important;
+    position: relative;
+    overflow: hidden;
+}
+
+.priority-btn:hover {
+    background: #f39c12 !important;
+}
+
+.priority-btn::before {
+    content: "🕐 PRIORITY";
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: rgba(255,255,255,0.2);
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 0.7em;
+    font-weight: bold;
+}
+
+/* Priority ticket styles */
+.priority-ticket {
+    border: 3px solid #e67e22 !important;
+    background: linear-gradient(135deg, #fffaf0 0%, #ffeaa7 100%) !important;
+}
+
+.priority-badge {
+    background: #e67e22;
+    color: white;
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 0.9em;
+    display: inline-block;
+    margin-bottom: 10px;
+}
+
+/* Employee panel priority styles */
+.priority-queue {
+    border-left: 5px solid #e67e22 !important;
+    background: linear-gradient(135deg, #34495e 0%, #2c3e50 100%) !important;
+}
+
+.priority-number {
+    color: #e67e22 !important;
+    font-weight: bold;
+}

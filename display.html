@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Now Serving</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #1a1a1a;
+            color: white;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: #e74c3c;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 3em;
+        }
+
+        .current-serving {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+        }
+
+        .current-number {
+            font-size: 8em;
+            font-weight: bold;
+            color: #e74c3c;
+            text-shadow: 0 0 30px rgba(231, 76, 60, 0.7);
+            margin: 20px 0;
+        }
+
+        .current-service {
+            font-size: 2em;
+            color: #ecf0f1;
+        }
+
+        .queue-list {
+            background: #2c3e50;
+            padding: 20px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .queue-list h3 {
+            text-align: center;
+            margin-bottom: 15px;
+            color: #bdc3c7;
+        }
+
+        .next-numbers {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .next-number {
+            background: #34495e;
+            padding: 15px 25px;
+            border-radius: 10px;
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+
+        .blink {
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>NOW SERVING</h1>
+    </div>
+
+    <div class="current-serving">
+        <div class="current-number" id="display-current-number">---</div>
+        <div class="current-service" id="display-current-service"></div>
+    </div>
+
+    <div class="queue-list">
+        <h3>Next Numbers</h3>
+        <div class="next-numbers" id="next-numbers">
+            <!-- Next numbers will appear here -->
+        </div>
+    </div>
+
+    <script>
+        function updateClientDisplay() {
+            const currentQueue = JSON.parse(localStorage.getItem('currentQueue') || '[]');
+            const servingIndex = parseInt(localStorage.getItem('servingIndex') || '-1');
+            
+            const currentNumber = document.getElementById('display-current-number');
+            const currentService = document.getElementById('display-current-service');
+            const nextNumbers = document.getElementById('next-numbers');
+
+            if (servingIndex >= 0 && currentQueue[servingIndex]) {
+                const current = currentQueue[servingIndex];
+                currentNumber.textContent = current.number;
+                currentNumber.classList.add('blink');
+                currentService.textContent = `${current.service} - ${current.type}`;
+            } else {
+                currentNumber.textContent = '---';
+                currentNumber.classList.remove('blink');
+                currentService.textContent = '';
+            }
+
+            // Show next 3 numbers
+            const nextItems = currentQueue
+                .filter((item, index) => index > servingIndex && !item.completed && !item.noshow)
+                .slice(0, 3);
+
+            nextNumbers.innerHTML = '';
+            nextItems.forEach(item => {
+                const nextElement = document.createElement('div');
+                nextElement.className = 'next-number';
+                nextElement.textContent = item.number;
+                nextNumbers.appendChild(nextElement);
+            });
+        }
+
+        // Listen for updates from employee panel
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'currentQueue' || e.key === 'servingIndex' || e.key === 'lastUpdate') {
+                updateClientDisplay();
+            }
+        });
+
+        // Check for updates every second
+        setInterval(updateClientDisplay, 1000);
+
+        // Initial update
+        updateClientDisplay();
+    </script>
+</body>
+</html>
