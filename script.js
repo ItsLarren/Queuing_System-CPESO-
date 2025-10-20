@@ -183,13 +183,28 @@ function addToQueue(ticketData) {
         called: false,
         completed: false,
         noshow: false,
-        isPriority: ticketData.clientType === 'Senior/PWD'
+        isPriority: ticketData.clientType === 'Senior/PWD',
+        isOutsideClient: ticketData.isOutsideClient || false
     };
 
     let currentQueue = JSON.parse(localStorage.getItem('currentQueue') || '[]');
     currentQueue.push(queueItem);
     localStorage.setItem('currentQueue', JSON.stringify(currentQueue));
     localStorage.setItem('queueUpdated', Date.now().toString());
+}
+
+function toggleCityInput() {
+    const barangaySelect = document.getElementById('barangay');
+    const outsideFields = document.getElementById('outside-fields');
+    
+    if (barangaySelect && outsideFields) {
+        if (barangaySelect.value === 'OTHER') {
+            outsideFields.style.display = 'block';
+        } else {
+            outsideFields.style.display = 'none';
+        }
+        setupFormValidation();
+    }
 }
 
 function initializeQueueNumbers() {
@@ -214,52 +229,20 @@ document.addEventListener('DOMContentLoaded', function() {
     showPage('welcome-page');
 });
 
-function addToQueue(ticketData) {
-    const queueItem = {
-        number: ticketData.queueNumber,
-        service: ticketData.service,
-        type: ticketData.subService,
-        name: ticketData.name,
-        barangay: ticketData.barangay,
-        timestamp: new Date().toISOString(),
-        called: false,
-        completed: false,
-        noshow: false
-    };
-
-    let currentQueue = JSON.parse(localStorage.getItem('currentQueue') || '[]');
-    currentQueue.push(queueItem);
-    localStorage.setItem('currentQueue', JSON.stringify(currentQueue));
-}
-
-function addToQueue(ticketData) {
-    const queueItem = {
-        number: ticketData.queueNumber,
-        service: currentService,
-        type: currentSubService,
-        name: ticketData.name,
-        barangay: ticketData.barangay,
-        timestamp: new Date().toISOString(),
-        called: false,
-        completed: false,
-        noshow: false
-    };
-
-    let currentQueue = JSON.parse(localStorage.getItem('currentQueue') || '[]');
-    currentQueue.push(queueItem);
-    localStorage.setItem('currentQueue', JSON.stringify(currentQueue));
-    
-    localStorage.setItem('queueUpdated', Date.now().toString());
-}
-
 function checkAndResetDaily() {
     const today = new Date().toDateString();
     const lastReset = localStorage.getItem('lastResetDate');
     
     if (lastReset !== today) {
         queueNumbers = {
-            'Mayors Working Permit': { 'Newly Hired': 1, 'Renew': 1 },
-            'Mayors Clearance': { 'Newly Hired': 1, 'Renew': 1 }
+            'Mayors Working Permit': { 
+                'Newly Hired': { 'Senior/PWD': 1, 'Regular': 1 },
+                'Renew': { 'Senior/PWD': 1, 'Regular': 1 }
+            },
+            'Mayors Clearance': { 
+                'Newly Hired': { 'Senior/PWD': 1, 'Regular': 1 },
+                'Renew': { 'Senior/PWD': 1, 'Regular': 1 }
+            }
         };
         
         localStorage.removeItem('currentQueue');
