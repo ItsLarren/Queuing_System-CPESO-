@@ -242,7 +242,6 @@ body {
     flex: 1;
 }
 
-/* Priority client styles */
 .priority-btn {
     background: #e67e22 !important;
     border: 3px solid #d35400 !important;
@@ -266,7 +265,6 @@ body {
     font-weight: bold;
 }
 
-/* Priority ticket styles */
 .priority-ticket {
     border: 3px solid #e67e22 !important;
     background: linear-gradient(135deg, #fffaf0 0%, #ffeaa7 100%) !important;
@@ -283,7 +281,6 @@ body {
     margin-bottom: 10px;
 }
 
-/* Employee panel priority styles */
 .priority-queue {
     border-left: 5px solid #e67e22 !important;
     background: linear-gradient(135deg, #34495e 0%, #2c3e50 100%) !important;

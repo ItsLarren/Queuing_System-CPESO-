@@ -157,7 +157,7 @@
 
             <h3>Queue List</h3>
             <div class="queue-list" id="queue-list">
-                <!-- Queue items will be dynamically added here -->
+                <!-- Queue items -->
             </div>
 
             <div class="reset-section">
@@ -177,10 +177,7 @@
 
     <audio id="bell-sound" src="bell.mp3" preload="auto"></audio>
 
-    <script>
-        // This would typically connect to your backend/database
-        // For now, we'll use localStorage to simulate shared data
-        
+    <script>        
         let currentQueue = JSON.parse(localStorage.getItem('currentQueue') || '[]');
         let servingIndex = parseInt(localStorage.getItem('servingIndex') || '-1');
 
@@ -200,14 +197,10 @@
                 currentService.textContent = '';
             }
 
-            // Update queue list
             queueList.innerHTML = '';
-            
-            // Separate priority and regular clients
             const priorityQueue = currentQueue.filter(item => item.isPriority && !item.completed && !item.noshow);
             const regularQueue = currentQueue.filter(item => !item.isPriority && !item.completed && !item.noshow);
             
-            // Add priority section header
             if (priorityQueue.length > 0) {
                 const priorityHeader = document.createElement('div');
                 priorityHeader.className = 'queue-item';
@@ -221,7 +214,6 @@
                 });
             }
             
-            // Add regular section header
             if (regularQueue.length > 0) {
                 const regularHeader = document.createElement('div');
                 regularHeader.className = 'queue-item';
@@ -235,11 +227,9 @@
                 });
             }
 
-            // Trigger storage event to update client display
             localStorage.setItem('lastUpdate', Date.now().toString());
         }
 
-        // NEW: Helper function to add queue items
         function addQueueItem(item, queueList, isPriority) {
             const queueItem = document.createElement('div');
             const isServing = currentQueue.indexOf(item) === servingIndex;
@@ -260,7 +250,6 @@
         }
 
         function callNext() {
-            // Find next waiting number
             const nextIndex = currentQueue.findIndex((item, index) => 
                 index > servingIndex && !item.noshow && !item.completed);
             
@@ -270,18 +259,15 @@
                 localStorage.setItem('servingIndex', servingIndex);
                 localStorage.setItem('currentQueue', JSON.stringify(currentQueue));
                 
-                // Play bell sound
                 const bellSound = document.getElementById('bell-sound');
                 if (bellSound) {
                     bellSound.play().catch(e => console.log('Audio play failed:', e));
                 }
                 
-                // Announce the number (text-to-speech)
                 speakNumber(currentQueue[servingIndex].number);
                 
                 updateDisplay();
             } else {
-                // No more numbers in queue
                 servingIndex = -1;
                 localStorage.setItem('servingIndex', servingIndex);
                 updateDisplay();
@@ -292,7 +278,7 @@
             if (servingIndex >= 0 && currentQueue[servingIndex]) {
                 currentQueue[servingIndex].completed = true;
                 localStorage.setItem('currentQueue', JSON.stringify(currentQueue));
-                callNext(); // Automatically call next after done
+                callNext(); 
             }
         }
 
@@ -300,7 +286,7 @@
             if (servingIndex >= 0 && currentQueue[servingIndex]) {
                 currentQueue[servingIndex].noshow = true;
                 localStorage.setItem('currentQueue', JSON.stringify(currentQueue));
-                callNext(); // Move to next after no-show
+                callNext();
             }
         }
 
@@ -324,37 +310,28 @@
         }
 
         function resetSystem() {
-            // Clear all localStorage data
             localStorage.removeItem('currentQueue');
             localStorage.removeItem('servingIndex');
             localStorage.removeItem('lastUpdate');
             localStorage.removeItem('queueUpdated');
             localStorage.removeItem('lastResetDate');
-            
-            // Reset queue numbers in main system too
             localStorage.setItem('queueNumbers', JSON.stringify({
                 'Mayors Working Permit': { 'Newly Hired': 1, 'Renew': 1 },
                 'Mayors Clearance': { 'Newly Hired': 1, 'Renew': 1 }
             }));
             
-            // Reset local variables
             currentQueue = [];
             servingIndex = -1;
             
-            // Hide confirmation
             hideResetConfirmation();
             
-            // Update display
             updateDisplay();
             
-            // Show success message
             alert('System has been reset successfully! Ready for tomorrow.');
             
-            // Trigger update on client display
             localStorage.setItem('systemReset', Date.now().toString());
         }
 
-        // Listen for new queue numbers from client system
         window.addEventListener('storage', function(e) {
             if (e.key === 'currentQueue' || e.key === 'servingIndex') {
                 currentQueue = JSON.parse(localStorage.getItem('currentQueue') || '[]');
@@ -363,7 +340,6 @@
             }
         });
 
-        // Check for updates every second
         setInterval(() => {
             const newQueue = JSON.parse(localStorage.getItem('currentQueue') || '[]');
             const newIndex = parseInt(localStorage.getItem('servingIndex') || '-1');
@@ -375,7 +351,6 @@
             }
         }, 1000);
 
-        // Initial display
         updateDisplay();
     </script>
 </body>

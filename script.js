@@ -2,7 +2,6 @@ let currentService = '';
 let currentSubService = '';
 let currentClientType = '';
 
-// Update queue numbers to include client types
 let queueNumbers = {
     'Mayors Working Permit': { 
         'Newly Hired': { 'Senior/PWD': 1, 'Regular': 1 },
@@ -32,20 +31,17 @@ function selectService(service) {
     showPage('subservice-page');
 }
 
-// Modify the selectSubService function
 function selectSubService(subService) {
     currentSubService = subService;
-    showPage('client-type-page'); // Go to client type selection instead of form
+    showPage('client-type-page'); 
 }
 
-// NEW: Add client type selection function
 function selectClientType(clientType) {
     currentClientType = clientType;
     showPage('form-page');
     setupFormValidation();
 }
 
-// Update the goBack function
 function goBack() {
     if (document.getElementById('form-page').classList.contains('active')) {
         showPage('client-type-page');
@@ -83,20 +79,17 @@ function setupFormValidation() {
     checkFormValidity();
 }
 
-// Modify the selectSubService function
 function selectSubService(subService) {
     currentSubService = subService;
-    showPage('client-type-page'); // Go to client type selection instead of form
+    showPage('client-type-page'); 
 }
 
-// NEW: Add client type selection function
 function selectClientType(clientType) {
     currentClientType = clientType;
     showPage('form-page');
     setupFormValidation();
 }
 
-// Update the goBack function
 function goBack() {
     if (document.getElementById('form-page').classList.contains('active')) {
         showPage('client-type-page');
@@ -107,7 +100,6 @@ function goBack() {
     }
 }
 
-// Update the generateTicket function
 function generateTicket() {
     const formData = {
         name: document.getElementById('name').value,
@@ -122,10 +114,8 @@ function generateTicket() {
     
     const queueNumber = `${prefix}${typeCode}${priorityCode}${number.toString().padStart(3, '0')}`;
     
-    // Increment the correct counter
     queueNumbers[currentService][currentSubService][currentClientType]++;
     
-    // Save to ticket data
     const ticketData = {
         queueNumber: queueNumber,
         service: currentService,
@@ -135,10 +125,8 @@ function generateTicket() {
         barangay: formData.barangay
     };
 
-    // Add to queue system
     addToQueue(ticketData);
     
-    // Update ticket display with priority styling
     const ticketElement = document.getElementById('printed-ticket');
     const queueNumberElement = document.getElementById('queue-number');
     
@@ -154,7 +142,6 @@ function generateTicket() {
     document.getElementById('ticket-service').textContent = currentService;
     document.getElementById('ticket-type').textContent = currentSubService;
     
-    // NEW: Add client type to ticket
     const clientTypeElement = document.createElement('p');
     clientTypeElement.innerHTML = `<strong>Client Type:</strong> <span id="ticket-client-type">${currentClientType}</span>`;
     if (currentClientType === 'Senior/PWD') {
@@ -162,12 +149,10 @@ function generateTicket() {
     }
     
     const ticketDetails = document.querySelector('.ticket-details');
-    // Remove existing client type if any
     const existingClientType = document.getElementById('ticket-client-type');
     if (existingClientType) {
         existingClientType.parentElement.remove();
     }
-    // Insert client type after service and before name
     const serviceElement = document.querySelector('#ticket-service').parentElement;
     serviceElement.parentNode.insertBefore(clientTypeElement, serviceElement.nextSibling);
     
@@ -183,11 +168,9 @@ function generateTicket() {
     
     document.getElementById('customer-form').reset();
     
-    // Save updated queue numbers
     localStorage.setItem('queueNumbers', JSON.stringify(queueNumbers));
 }
 
-// Update the addToQueue function
 function addToQueue(ticketData) {
     const queueItem = {
         number: ticketData.queueNumber,
@@ -203,16 +186,12 @@ function addToQueue(ticketData) {
         isPriority: ticketData.clientType === 'Senior/PWD'
     };
 
-    // Get current queue from localStorage
     let currentQueue = JSON.parse(localStorage.getItem('currentQueue') || '[]');
     currentQueue.push(queueItem);
     localStorage.setItem('currentQueue', JSON.stringify(currentQueue));
-    
-    // Trigger storage event
     localStorage.setItem('queueUpdated', Date.now().toString());
 }
 
-// Update the initializeQueueNumbers function for daily reset
 function initializeQueueNumbers() {
     const saved = localStorage.getItem('queueNumbers');
     if (saved) {
@@ -248,7 +227,6 @@ function addToQueue(ticketData) {
         noshow: false
     };
 
-    // Get current queue from localStorage
     let currentQueue = JSON.parse(localStorage.getItem('currentQueue') || '[]');
     currentQueue.push(queueItem);
     localStorage.setItem('currentQueue', JSON.stringify(currentQueue));
@@ -267,35 +245,28 @@ function addToQueue(ticketData) {
         noshow: false
     };
 
-    // Get current queue from localStorage
     let currentQueue = JSON.parse(localStorage.getItem('currentQueue') || '[]');
     currentQueue.push(queueItem);
     localStorage.setItem('currentQueue', JSON.stringify(currentQueue));
     
-    // Trigger storage event
     localStorage.setItem('queueUpdated', Date.now().toString());
 }
 
-// Automatic daily reset function
 function checkAndResetDaily() {
     const today = new Date().toDateString();
     const lastReset = localStorage.getItem('lastResetDate');
     
-    // If it's a new day, reset everything
     if (lastReset !== today) {
-        // Reset queue numbers
         queueNumbers = {
             'Mayors Working Permit': { 'Newly Hired': 1, 'Renew': 1 },
             'Mayors Clearance': { 'Newly Hired': 1, 'Renew': 1 }
         };
         
-        // Clear queue data
         localStorage.removeItem('currentQueue');
         localStorage.removeItem('servingIndex');
         localStorage.removeItem('lastUpdate');
         localStorage.removeItem('queueUpdated');
         
-        // Set today as reset date
         localStorage.setItem('lastResetDate', today);
         localStorage.setItem('queueNumbers', JSON.stringify(queueNumbers));
         
@@ -303,5 +274,4 @@ function checkAndResetDaily() {
     }
 }
 
-// Call this when the system starts
 checkAndResetDaily();
