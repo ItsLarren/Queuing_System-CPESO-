@@ -575,6 +575,22 @@
             border-radius: 8px;
             margin-top: 20px;
         }
+
+    /* Outside location styles */
+        .outside-location {
+            background: #fff3cd !important;
+            border-left: 4px solid #ffc107 !important;
+        }
+
+        .outside-badge {
+            background: #ffc107;
+            color: #856404;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.8em;
+            font-weight: bold;
+            margin-left: 5px;
+        }
     </style>
 </head>
 <body>
@@ -644,7 +660,7 @@
                 </div>
                 <div class="form-group">
                     <label for="barangay">Barangay:</label>
-                    <select id="barangay" name="barangay" required>
+                    <select id="barangay" name="barangay" required onchange="toggleCityInput()">
                         <option value="">Select Barangay</option>
                         <option value="Alasa">Alasa</option>
                         <option value="Baliti">Baliti</option>
@@ -680,8 +696,24 @@
                         <option value="Santo Niño">Santo Niño</option>
                         <option value="Santo Rosario">Santo Rosario</option>
                         <option value="Sindalan">Sindalan</option>
-                        <option value="Telebastagan">Telebastagan</option>      
+                        <option value="Telebastagan">Telebastagan</option>
+                        <option value="OTHER">Other (Outside SF Pampanga)</option>
                     </select>
+
+                    <div id="outside-fields" style="display: none;">
+                    <div class="form-group">
+                        <label for="custom-barangay">Barangay (Outside SF):</label>
+                        <input type="text" id="custom-barangay" name="custom-barangay" placeholder="Enter your barangay">
+                    </div>
+                    <div class="form-group">
+                        <label for="city">City/Municipality:</label>
+                        <input type="text" id="city" name="city" placeholder="Enter your city/municipality">
+                    </div>
+                    <div class="form-group">
+                        <label for="province">Province:</label>
+                        <input type="text" id="province" name="province" placeholder="Enter your province">
+                    </div>
+                </div>
                 </div>
                 <div class="button-group">
                     <button type="button" class="back-btn" onclick="goBack()">Back</button>
@@ -943,7 +975,8 @@
             function checkFormValidity() {
                 let allValid = true;
                 inputs.forEach(input => {
-                    if (!input.checkValidity()) {
+                    // Only check visible and required fields
+                    if (input.offsetParent !== null && input.required && !input.checkValidity()) {
                         allValid = false;
                     }
                 });
@@ -965,6 +998,18 @@
                 barangay: document.getElementById('barangay').value
             };
             
+            // Handle outside clients
+            let clientLocation = formData.barangay;
+            let isOutsideClient = false;
+            
+            if (formData.barangay === 'OTHER') {
+                const customBarangay = document.getElementById('custom-barangay').value;
+                const city = document.getElementById('city').value;
+                const province = document.getElementById('province').value;
+                clientLocation = `${customBarangay}, ${city}, ${province}`;
+                isOutsideClient = true;
+            }
+            
             const prefix = currentService === 'Mayors Working Permit' ? 'MWP' : 'MCL';
             const typeCode = currentSubService === 'Newly Hired' ? 'N' : 'R';
             const priorityCode = currentClientType === 'Senior/PWD' ? 'P' : 'R';
@@ -980,7 +1025,8 @@
                 subService: currentSubService,
                 clientType: currentClientType,
                 name: formData.name,
-                barangay: formData.barangay
+                barangay: clientLocation,
+                isOutsideClient: isOutsideClient
             };
 
             addToQueue(ticketData);
@@ -994,6 +1040,11 @@
             } else {
                 ticketElement.classList.remove('priority-ticket');
                 queueNumberElement.classList.remove('priority-number');
+            }
+            
+            // Add outside client styling
+            if (isOutsideClient) {
+                ticketElement.classList.add('outside-location');
             }
             
             document.getElementById('queue-number').textContent = queueNumber;
@@ -1015,8 +1066,14 @@
             serviceElement.parentNode.insertBefore(clientTypeElement, serviceElement.nextSibling);
             
             document.getElementById('ticket-name').textContent = formData.name;
-            document.getElementById('ticket-barangay').textContent = formData.barangay;
+            document.getElementById('ticket-barangay').textContent = clientLocation;
             document.getElementById('ticket-date').textContent = new Date().toLocaleDateString();
+            
+            // Add outside client badge if needed
+            if (isOutsideClient) {
+                const locationElement = document.querySelector('#ticket-barangay').parentElement;
+                locationElement.innerHTML += ` <span class="outside-badge">Outside</span>`;
+            }
             
             showPage('ticket-page');
             
@@ -1025,8 +1082,11 @@
             }, 500);
             
             document.getElementById('customer-form').reset();
+            // Hide outside fields after reset
+            document.getElementById('outside-fields').style.display = 'none';
             localStorage.setItem('queueNumbers', JSON.stringify(queueNumbers));
         }
+
 
         function addToQueue(ticketData) {
             const queueItem = {
@@ -1040,14 +1100,14 @@
                 called: false,
                 completed: false,
                 noshow: false,
-                isPriority: ticketData.clientType === 'Senior/PWD'
+                isPriority: ticketData.clientType === 'Senior/PWD',
+                isOutsideClient: ticketData.isOutsideClient || false
             };
 
             currentQueue.push(queueItem);
             localStorage.setItem('currentQueue', JSON.stringify(currentQueue));
             localStorage.setItem('queueUpdated', Date.now().toString());
             
-            // Update displays
             updateClientDisplay();
             updateEmployeeDisplay();
         }
@@ -1149,14 +1209,24 @@
             const queueItem = document.createElement('div');
             const isServing = currentQueue.indexOf(item) === servingIndex;
             
-            queueItem.className = `employee-queue-item ${isServing ? 'employee-status-serving' : 
-                item.called ? 'employee-status-called' : 'employee-status-waiting'} ${isPriority ? 'priority-queue' : ''}`;
+            let queueItemClass = `employee-queue-item ${isServing ? 'employee-status-serving' : 
+                item.called ? 'employee-status-called' : 'employee-status-waiting'}`;
+            
+            if (isPriority) {
+                queueItemClass += ' priority-queue';
+            }
+            if (item.isOutsideClient) {
+                queueItemClass += ' outside-location';
+            }
+            
+            queueItem.className = queueItemClass;
             
             queueItem.innerHTML = `
                 <div>
                     <div class="employee-queue-number ${isPriority ? 'priority-number' : ''}">${item.number}</div>
                     <div class="employee-queue-service">${item.service} - ${item.type}</div>
                     ${isPriority ? '<div style="color: #e67e22; font-size: 0.9em;">👵 Senior/PWD</div>' : ''}
+                    ${item.isOutsideClient ? '<div style="color: #856404; font-size: 0.9em;">📍 Outside SF Pampanga</div>' : ''}
                 </div>
                 <div>${item.name}</div>
             `;
@@ -1385,6 +1455,34 @@
             updateEmployeeDisplay();
             updateAdminStats();
         });
+
+        function toggleCityInput() {
+            const barangaySelect = document.getElementById('barangay');
+            const outsideFields = document.getElementById('outside-fields');
+            const customBarangay = document.getElementById('custom-barangay');
+            const city = document.getElementById('city');
+            const province = document.getElementById('province');
+            
+            if (barangaySelect.value === 'OTHER') {
+                outsideFields.style.display = 'block';
+                // Make outside fields required
+                customBarangay.required = true;
+                city.required = true;
+                province.required = true;
+            } else {
+                outsideFields.style.display = 'none';
+                // Remove required from outside fields
+                customBarangay.required = false;
+                city.required = false;
+                province.required = false;
+                // Clear outside fields
+                customBarangay.value = '';
+                city.value = '';
+                province.value = '';
+            }
+            // Re-validate form
+            setupFormValidation();
+        }
     </script>
 </body>
 </html>
