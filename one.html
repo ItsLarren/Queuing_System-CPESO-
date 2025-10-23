@@ -921,6 +921,46 @@
             margin-top: 15px;
             display: none;
         }
+
+        .financial-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 30px 0;
+            font-size: 1.2em;
+        }
+
+        .financial-table th, .financial-table td {
+            padding: 15px;
+            text-align: center;
+            border: 1px solid #7f8c8d;
+        }
+
+        .financial-table th {
+            background: #34495e;
+            color: #ecf0f1;
+            font-weight: bold;
+        }
+
+        .financial-table tr:nth-child(even) {
+            background: rgba(52, 73, 94, 0.5);
+        }
+
+        .financial-total {
+            font-weight: bold;
+            font-size: 1.3em;
+            color: #e74c3c;
+            background: rgba(231, 76, 60, 0.1) !important;
+            border-top: 2px solid #e74c3c !important;
+            border-bottom: 2px solid #e74c3c !important;
+        }
+
+        .financial-table tr:nth-child(3) {
+            border-bottom: 2px dashed #7f8c8d;
+        }
+
+        .financial-table tr:nth-child(4) {
+            border-top: 2px dashed #7f8c8d;
+        }
     </style>
 </head>
 <body>
@@ -1257,19 +1297,15 @@
                                 <td>₱150</td>
                                 <td id="financial-non-csfp-total">₱0</td>
                             </tr>
+                            <tr class="financial-total">
+                                <td colspan="3">Total Income</td>
+                                <td id="financial-total-income">₱0</td>
+                            </tr>
                             <tr>
                                 <td>FTJ</td>
                                 <td id="financial-ftj-count">0</td>
                                 <td>₱150</td>
                                 <td id="financial-ftj-total">₱0</td>
-                            </tr>
-                            <tr class="financial-total">
-                                <td colspan="3">TOTAL INCOME</td>
-                                <td id="financial-total-income">₱0</td>
-                            </tr>
-                            <tr>
-                                <td colspan="3">FTJ (Free)</td>
-                                <td id="financial-ftj-free">₱0</td>
                             </tr>
                             <tr class="financial-total">
                                 <td colspan="3">NET INCOME</td>
@@ -1341,7 +1377,11 @@
             
             if (savedClientStats) {
                 clientStats = JSON.parse(savedClientStats);
+            } else {
+                updateClientStats();
             }
+            
+            updateClientStats();
             
             updateAdminStats();
             updateFinancialStats();
@@ -1524,12 +1564,35 @@
         }
 
         function updateClientStats() {
-            if (currentClientType === 'Senior/PWD') {
-                clientStats.csfp++;
-            } else if (currentClientType === 'Regular') {
-                clientStats.nonCsfp++;
-            } else if (currentClientType === 'FTJ') {
-                clientStats.ftj++;
+            clientStats.csfp = 0;
+            clientStats.nonCsfp = 0;
+            clientStats.ftj = 0;
+            
+            for (const service in queueData) {
+                for (const subService in queueData[service]) {
+                    const queue = queueData[service][subService].queue;
+                    const done = queueData[service][subService].done;
+                    
+                    queue.forEach(item => {
+                        if (item.clientType === 'Senior/PWD') {
+                            clientStats.csfp++;
+                        } else if (item.clientType === 'Regular') {
+                            clientStats.nonCsfp++;
+                        } else if (item.clientType === 'FTJ') {
+                            clientStats.ftj++;
+                        }
+                    });
+                    
+                    done.forEach(item => {
+                        if (item.clientType === 'Senior/PWD') {
+                            clientStats.csfp++;
+                        } else if (item.clientType === 'Regular') {
+                            clientStats.nonCsfp++;
+                        } else if (item.clientType === 'FTJ') {
+                            clientStats.ftj++;
+                        }
+                    });
+                }
             }
             
             localStorage.setItem('clientStats', JSON.stringify(clientStats));
@@ -1554,9 +1617,11 @@
             const nonCsfpTotal = nonCsfpCount * 150;
             const ftjTotal = ftjCount * 150;
             
-            const totalIncome = csfpTotal + nonCsfpTotal + ftjTotal;
-            const ftjFree = ftjTotal; 
-            const netIncome = totalIncome - ftjFree;
+            // Total Income = CSFP + NON-CSFP
+            const totalIncome = csfpTotal + nonCsfpTotal;
+            
+            // NET INCOME = Total Income - FTJ Total
+            const netIncome = totalIncome - ftjTotal;
             
             document.getElementById('financial-csfp-count').textContent = csfpCount;
             document.getElementById('financial-non-csfp-count').textContent = nonCsfpCount;
@@ -1567,7 +1632,6 @@
             document.getElementById('financial-ftj-total').textContent = `₱${ftjTotal}`;
             
             document.getElementById('financial-total-income').textContent = `₱${totalIncome}`;
-            document.getElementById('financial-ftj-free').textContent = `₱${ftjFree}`;
             document.getElementById('financial-net-income').textContent = `₱${netIncome}`;
         }
 
