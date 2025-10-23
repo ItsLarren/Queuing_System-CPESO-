@@ -511,7 +511,7 @@
 
         .employee-header h1 {
             font-size: 3em;
-            color: #ecf0f1;
+            color: #e74c3c;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
         }
 
@@ -591,9 +591,15 @@
 
         .employee-call-btn {
             background: #f39c12;
-            color: white;
+            color: white; 
+            border: 2px solid #e67e22; 
         }
 
+        .employee-call-btn:hover {
+            background: #e67e12;
+            color: white;
+        }
+        
         .employee-noshow-btn {
             background: #95a5a6;
             color: white;
@@ -961,6 +967,80 @@
         .financial-table tr:nth-child(4) {
             border-top: 2px dashed #7f8c8d;
         }
+
+        .employee-recall-btn {
+            background: #9b59b6 !important;
+            color: white;
+        }
+
+        .employee-recall-btn:hover {
+            background: #8e44ad !important;
+        }
+
+        .employee-status-noshow {
+            border-left: 8px solid #e67e22 !important;
+            opacity: 0.8;
+            background: linear-gradient(135deg, #34495e 0%, #2c3e50 100%) !important;
+        }
+
+        @keyframes recall-blink {
+            0%, 100% { 
+                color: #e74c3c;
+                text-shadow: 0 0 50px rgba(231, 76, 60, 0.7);
+                transform: scale(1);
+            }
+            50% { 
+                color: #ffeb3b;
+                text-shadow: 0 0 60px rgba(255, 235, 59, 0.9);
+                transform: scale(1.05);
+            }
+        }
+
+        .recall-blinking {
+            animation: recall-blink 0.8s ease-in-out 3;
+        }
+
+        .display-current-number.recall-blinking,
+        .employee-display-number.recall-blinking {
+            animation: recall-blink 0.8s ease-in-out 3;
+        }
+
+        .welcome-container {
+            cursor: pointer;
+        }
+
+        .instruction {
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .instruction:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: scale(1.05);
+        }
+
+        .employee-queue-number {
+            color: white !important;
+        }
+
+        .employee-queue-number .priority-number,
+        .employee-queue-number .ftj-number {
+            color: inherit !important;
+        }
+
+        .priority-number {
+            color: #e67e22 !important;
+        }
+
+        .ftj-number {
+            color: #3498db !important;
+        }
+
+        .employee-queue-service {
+            color: #bdc3c7 !important;
+        }
     </style>
 </head>
 <body>
@@ -1043,7 +1123,7 @@
                         <label for="barangay">Barangay:</label>
                         <select id="barangay" name="barangay" required onchange="toggleCityInput()">
                             <option value="">Select Barangay</option>
-                            <option value="Alasa">Alasa</option>
+                            <option value="Alasas">Alasas</option>
                             <option value="Baliti">Baliti</option>
                             <option value="Bulaon">Bulaon</option>
                             <option value="Calulut">Calulut</option>
@@ -1180,6 +1260,9 @@
                             </button>
                             <button class="employee-control-btn employee-call-btn" onclick="callNext()">
                                 🔔 Call Next
+                            </button>
+                            <button class="employee-control-btn employee-recall-btn" onclick="recallCurrent()">
+                                🔄 Recall
                             </button>
                             <button class="employee-control-btn employee-noshow-btn" onclick="markNoShow()">
                                 ❌ No Show
@@ -1382,7 +1465,6 @@
             }
             
             updateClientStats();
-            
             updateAdminStats();
             updateFinancialStats();
             updateEmployeeQueueList();
@@ -1506,7 +1588,7 @@
             
             addToQueue(queueNumber, name, finalBarangay);
             
-            updateClientStats();
+            //updateClientStats();
             
             showPage('ticket-page');
             
@@ -1564,33 +1646,47 @@
         }
 
         function updateClientStats() {
+            // Reset all stats to zero
             clientStats.csfp = 0;
             clientStats.nonCsfp = 0;
             clientStats.ftj = 0;
             
+            // List of CSFP barangays (from your dropdown)
+            const csfpBarangays = [
+                'Alasas', 'Baliti', 'Bulaon', 'Calulut', 'Del Carmen', 'Del Pilar', 
+                'Del Rosario', 'Dela Paz Norte', 'Dela Paz Sur', 'Dolores', 'Juliana', 
+                'Lara', 'Lourdes', 'Magliman', 'Maimpis', 'Malino', 'Malpitic', 
+                'Pandaras', 'Panipuan', 'Pulung Bulu', 'Quebiauan', 'Saguin', 
+                'San Agustin', 'San Felipe', 'San Isidro', 'San Jose', 'San Juan', 
+                'San Nicolas', 'San Pedro', 'Santa Lucia', 'Santa Teresita', 
+                'Santo Niño', 'Santo Rosario', 'Sindalan', 'Telebastagan'
+            ];
+            
+            // ONLY count clients from the "done" queue who were actually served
             for (const service in queueData) {
                 for (const subService in queueData[service]) {
-                    const queue = queueData[service][subService].queue;
-                    const done = queueData[service][subService].done;
+                    const doneQueue = queueData[service][subService].done;
                     
-                    queue.forEach(item => {
-                        if (item.clientType === 'Senior/PWD') {
-                            clientStats.csfp++;
-                        } else if (item.clientType === 'Regular') {
-                            clientStats.nonCsfp++;
-                        } else if (item.clientType === 'FTJ') {
-                            clientStats.ftj++;
+                    // Process done queue - only count clients with status 'served'
+                    doneQueue.forEach(item => {
+                        if (item.status === 'served') { // ONLY count served clients
+                            if (item.clientType === 'FTJ') {
+                                clientStats.ftj++;
+                            } else {
+                                // Check if barangay is in CSFP list
+                                const isCsfp = csfpBarangays.some(barangay => 
+                                    item.barangay.includes(barangay) || 
+                                    (item.barangay === barangay)
+                                );
+                                
+                                if (isCsfp) {
+                                    clientStats.csfp++;
+                                } else {
+                                    clientStats.nonCsfp++;
+                                }
+                            }
                         }
-                    });
-                    
-                    done.forEach(item => {
-                        if (item.clientType === 'Senior/PWD') {
-                            clientStats.csfp++;
-                        } else if (item.clientType === 'Regular') {
-                            clientStats.nonCsfp++;
-                        } else if (item.clientType === 'FTJ') {
-                            clientStats.ftj++;
-                        }
+                        // Skip noshow_removed clients and any other status
                     });
                 }
             }
@@ -1640,11 +1736,15 @@
             let serviceType = '';
             let subServiceType = '';
             
+            // First, look for priority customers (Senior/PWD) with status 'waiting' OR 'noshow'
             for (const service in queueData) {
                 for (const subService in queueData[service]) {
                     const queue = queueData[service][subService].queue;
                     if (queue.length > 0) {
-                        const priorityCustomer = queue.find(customer => customer.clientType === 'Senior/PWD' && customer.status === 'waiting');
+                        const priorityCustomer = queue.find(customer => 
+                            customer.clientType === 'Senior/PWD' && 
+                            (customer.status === 'waiting' || customer.status === 'noshow')
+                        );
                         if (priorityCustomer) {
                             nextCustomer = priorityCustomer;
                             serviceType = service;
@@ -1656,15 +1756,21 @@
                 if (nextCustomer) break;
             }
             
+            // If no priority customers, look for any customer with status 'waiting' OR 'noshow'
             if (!nextCustomer) {
                 for (const service in queueData) {
                     for (const subService in queueData[service]) {
                         const queue = queueData[service][subService].queue;
-                        if (queue.length > 0 && queue[0].status === 'waiting') {
-                            nextCustomer = queue[0];
-                            serviceType = service;
-                            subServiceType = subService;
-                            break;
+                        if (queue.length > 0) {
+                            const availableCustomer = queue.find(customer => 
+                                customer.status === 'waiting' || customer.status === 'noshow'
+                            );
+                            if (availableCustomer) {
+                                nextCustomer = availableCustomer;
+                                serviceType = service;
+                                subServiceType = subService;
+                                break;
+                            }
                         }
                     }
                     if (nextCustomer) break;
@@ -1681,7 +1787,6 @@
                 alert('No customers in queue');
             }
         }
-
         function markDone() {
             let currentCustomer = null;
             let serviceType = '';
@@ -1701,10 +1806,15 @@
             }
             
             if (currentCustomer) {
+                // Mark as served before moving to done queue
+                currentCustomer.status = 'served'; // Ensure status is 'served'
                 queueData[serviceType][subServiceType].done.push(currentCustomer);
                 queueData[serviceType][subServiceType].queue.shift();
                 queueData[serviceType][subServiceType].current = 0;
                 localStorage.setItem('queueData', JSON.stringify(queueData));
+                
+                // Update stats since client was actually served
+                updateClientStats();
                 
                 updateEmployeeQueueList();
                 updateDisplay();
@@ -1732,15 +1842,44 @@
             }
             
             if (currentCustomer) {
-                currentCustomer.status = 'noshow';
-                queueData[serviceType][subServiceType].queue.push(currentCustomer);
-                queueData[serviceType][subServiceType].queue.shift();
-                queueData[serviceType][subServiceType].current = 0;
+                // Ask for confirmation with different options
+                const userChoice = confirm(
+                    `Mark ${currentCustomer.number} as No Show?\n\n` +
+                    `Click OK to move to end of queue (client might still come).\n` +
+                    `Click Cancel to remove completely (definitely not coming - won't count in revenue).`
+                );
                 
-                localStorage.setItem('queueData', JSON.stringify(queueData));
-                
-                updateEmployeeQueueList();
-                updateDisplay();
+                if (userChoice) {
+                    // Move to end of queue (client might still come)
+                    currentCustomer.status = 'noshow';
+                    // Remove from front and add to end
+                    const movedCustomer = queueData[serviceType][subServiceType].queue.shift();
+                    queueData[serviceType][subServiceType].queue.push(movedCustomer);
+                    queueData[serviceType][subServiceType].current = 0;
+                    
+                    localStorage.setItem('queueData', JSON.stringify(queueData));
+                    
+                    updateEmployeeQueueList();
+                    updateDisplay();
+                    
+                    alert(`Number ${currentCustomer.number} moved to end of queue.`);
+                } else {
+                    // Remove completely (definitely not coming) - won't count in stats
+                    const removedCustomer = queueData[serviceType][subServiceType].queue.shift();
+                    queueData[serviceType][subServiceType].current = 0;
+                    
+                    removedCustomer.status = 'noshow_removed';
+                    queueData[serviceType][subServiceType].done.push(removedCustomer);
+                    
+                    localStorage.setItem('queueData', JSON.stringify(queueData));
+                    
+                    updateEmployeeQueueList();
+                    updateDisplay();
+                    // Don't update stats since this client wasn't served
+                    // updateClientStats(); // REMOVED - don't update stats for noshow_removed
+                    
+                    alert(`Number ${currentCustomer.number} completely removed from queue and won't count in revenue.`);
+                }
             } else {
                 alert('No customer is currently being served');
             }
@@ -1798,8 +1937,11 @@
                     
                     queueItem.innerHTML = `
                         <div>
-                            <div class="employee-queue-number ${item.clientType === 'Senior/PWD' ? 'priority-number' : (item.clientType === 'FTJ' ? 'ftj-number' : '')}">
-                                ${item.number} ${statusText}
+                            <div class="employee-queue-number">
+                                <span class="${item.clientType === 'Senior/PWD' ? 'priority-number' : (item.clientType === 'FTJ' ? 'ftj-number' : '')}">
+                                    ${item.number}
+                                </span>
+                                ${statusText}
                                 ${clientTypeBadge}
                                 ${item.barangay.includes('OTHER') ? '<span class="outside-badge">OUTSIDE</span>' : ''}
                             </div>
@@ -1990,10 +2132,167 @@
         window.onload = function() {
             initializeSystem();
             
+            // Fix for welcome page touch/click
             document.getElementById('welcome-page').addEventListener('click', function() {
                 showPage('service-page');
             });
+            
+            // Also make the instruction text clickable
+            document.querySelector('.instruction').addEventListener('click', function(e) {
+                e.stopPropagation(); // Prevent double triggering
+                showPage('service-page');
+            });
+            
+            // Enable form validation for print button
+            document.getElementById('customer-form').addEventListener('input', function() {
+                const name = document.getElementById('name').value;
+                const address = document.getElementById('address').value;
+                const barangay = document.getElementById('barangay').value;
+                const printBtn = document.getElementById('print-btn');
+                
+                let isValid = name && address && barangay;
+                
+                // Additional validation for "Other" barangay selection
+                if (barangay === 'OTHER') {
+                    const customBarangay = document.getElementById('custom-barangay').value;
+                    const city = document.getElementById('city').value;
+                    const province = document.getElementById('province').value;
+                    isValid = isValid && customBarangay && city && province;
+                }
+                
+                printBtn.disabled = !isValid;
+            });
         };
+
+        function recallCurrent() {
+            let currentCustomer = null;
+            let serviceType = '';
+            let subServiceType = '';
+            
+            // Find the currently called customer
+            for (const service in queueData) {
+                for (const subService in queueData[service]) {
+                    const queue = queueData[service][subService].queue;
+                    if (queue.length > 0 && queue[0].status === 'called') {
+                        currentCustomer = queue[0];
+                        serviceType = service;
+                        subServiceType = subService;
+                        break;
+                    }
+                }
+                if (currentCustomer) break;
+            }
+            
+            if (currentCustomer) {
+                // Get display elements
+                const displayNumber = document.getElementById('display-current-number');
+                const employeeDisplay = document.getElementById('employee-display-number');
+                
+                // Store original styles
+                const originalColor = '#e74c3c';
+                const originalTextShadow = '0 0 50px rgba(231, 76, 60, 0.7)';
+                const blinkColor = '#ffeb3b';
+                const blinkTextShadow = '0 0 50px rgba(255, 235, 59, 0.9)';
+                
+                // Create blinking effect
+                let blinkCount = 0;
+                const blinkInterval = setInterval(() => {
+                    if (blinkCount % 2 === 0) {
+                        // Blink ON - yellow
+                        displayNumber.style.color = blinkColor;
+                        displayNumber.style.textShadow = blinkTextShadow;
+                        displayNumber.style.fontSize = '13em'; // Slightly larger for emphasis
+                        employeeDisplay.style.color = blinkColor;
+                        employeeDisplay.style.fontSize = '7em'; // Slightly larger for emphasis
+                    } else {
+                        // Blink OFF - back to normal
+                        displayNumber.style.color = originalColor;
+                        displayNumber.style.textShadow = originalTextShadow;
+                        displayNumber.style.fontSize = '12em';
+                        employeeDisplay.style.color = originalColor;
+                        employeeDisplay.style.fontSize = '6em';
+                    }
+                    blinkCount++;
+                    
+                    if (blinkCount >= 8) { // Blink 4 times (on/off pairs)
+                        clearInterval(blinkInterval);
+                        // Reset to original styles
+                        displayNumber.style.color = originalColor;
+                        displayNumber.style.textShadow = originalTextShadow;
+                        displayNumber.style.fontSize = '12em';
+                        employeeDisplay.style.color = originalColor;
+                        employeeDisplay.style.fontSize = '6em';
+                    }
+                }, 400); // Faster blinking for better attention
+                
+                // Play a sound or show visual alert
+                alert(`🔔 RECALLING NUMBER: ${currentCustomer.number}\n\nPlease proceed to the counter.`);
+            } else {
+                alert('No customer is currently being called');
+            }
+        }
+
+        function markNoShow() {
+            let currentCustomer = null;
+            let serviceType = '';
+            let subServiceType = '';
+            
+            for (const service in queueData) {
+                for (const subService in queueData[service]) {
+                    const queue = queueData[service][subService].queue;
+                    if (queue.length > 0 && queue[0].status === 'called') {
+                        currentCustomer = queue[0];
+                        serviceType = service;
+                        subServiceType = subService;
+                        break;
+                    }
+                }
+                if (currentCustomer) break;
+            }
+            
+            if (currentCustomer) {
+                // Ask for confirmation with different options
+                const userChoice = confirm(
+                    `Mark ${currentCustomer.number} as No Show?\n\n` +
+                    `Click OK to move to end of queue (client might still come).\n` +
+                    `Click Cancel to remove completely (definitely not coming).`
+                );
+                
+                if (userChoice) {
+                    // Move to end of queue (client might still come)
+                    currentCustomer.status = 'noshow';
+                    // Remove from front and add to end
+                    const movedCustomer = queueData[serviceType][subServiceType].queue.shift();
+                    queueData[serviceType][subServiceType].queue.push(movedCustomer);
+                    queueData[serviceType][subServiceType].current = 0;
+                    
+                    localStorage.setItem('queueData', JSON.stringify(queueData));
+                    
+                    updateEmployeeQueueList();
+                    updateDisplay();
+                    
+                    alert(`Number ${currentCustomer.number} moved to end of queue.`);
+                } else {
+                    // Remove completely (definitely not coming)
+                    const removedCustomer = queueData[serviceType][subServiceType].queue.shift();
+                    queueData[serviceType][subServiceType].current = 0;
+                    
+                    // Add to done list with noshow status for tracking
+                    removedCustomer.status = 'noshow_removed';
+                    queueData[serviceType][subServiceType].done.push(removedCustomer);
+                    
+                    localStorage.setItem('queueData', JSON.stringify(queueData));
+                    
+                    updateEmployeeQueueList();
+                    updateDisplay();
+                    updateClientStats(); // Update stats since customer is removed
+                    
+                    alert(`Number ${currentCustomer.number} completely removed from queue.`);
+                }
+            } else {
+                alert('No customer is currently being served');
+            }
+        }
     </script>
 </body>
 </html>

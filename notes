@@ -9,3 +9,22 @@ Newly hired option clicked - will show or display a forms liek name, address and
 
 
 after printing the page will redirect to the main page.
+
+now the problem was, when call next the color of the next number wont be seen becasue it is trhe same color as trhe employee display background.
+
+also at the stats part, when I only click done was only one client adn at the stst all the client that get a number will be all go t the stst number
+
+it should be like this
+sample
+there is 5 client
+the 5 clients get a number
+then the employee will call the first number
+1 client was mark as done - zt the stats it will only update 1 
+next the employee will call next number
+2nd client will be mark as no show -  at the stats it wont be added it will remain the count to one
+3rd client nwas mark as done - it will be update the ststs, updae tyotal client 2
+4th client mark as done - it will be update the ststs, updae tyotal client 3
+5th client mark as no show - it wont be update the stats updated total cluent 3
+
+
+the color of the next number was not visible at the employee display because the etxt of the calliing numbers were also red
