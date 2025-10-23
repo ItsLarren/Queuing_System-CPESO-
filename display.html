@@ -103,7 +103,7 @@
     <div class="queue-list">
         <h3>Next Numbers</h3>
         <div class="next-numbers" id="next-numbers">
-            <!-- Next numbers will appear here -->
+            <!-- Next numbers -->
         </div>
     </div>
 
@@ -127,7 +127,6 @@
                 currentService.textContent = '';
             }
 
-            // Show next 3 numbers
             const nextItems = currentQueue
                 .filter((item, index) => index > servingIndex && !item.completed && !item.noshow)
                 .slice(0, 3);
@@ -141,17 +140,14 @@
             });
         }
 
-        // Listen for updates from employee panel
         window.addEventListener('storage', function(e) {
             if (e.key === 'currentQueue' || e.key === 'servingIndex' || e.key === 'lastUpdate') {
                 updateClientDisplay();
             }
         });
 
-        // Check for updates every second
         setInterval(updateClientDisplay, 1000);
 
-        // Initial update
         updateClientDisplay();
     </script>
 </body>

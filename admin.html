@@ -181,31 +181,25 @@
         }
 
         function resetSystem() {
-            // Clear all queue data
             localStorage.removeItem('currentQueue');
             localStorage.removeItem('servingIndex');
             localStorage.removeItem('lastUpdate');
             localStorage.removeItem('queueUpdated');
             
-            // Set reset date to today
             const today = new Date().toDateString();
             localStorage.setItem('lastResetDate', today);
             
-            // Reset queue numbers
             const resetQueueNumbers = {
                 'Mayors Working Permit': { 'Newly Hired': 1, 'Renew': 1 },
                 'Mayors Clearance': { 'Newly Hired': 1, 'Renew': 1 }
             };
             localStorage.setItem('queueNumbers', JSON.stringify(resetQueueNumbers));
             
-            // Hide confirmation and show success
             hideResetConfirmation();
             document.getElementById('success-message').style.display = 'block';
             
-            // Update stats
             updateStats();
             
-            // Auto hide success message
             setTimeout(() => {
                 document.getElementById('success-message').style.display = 'none';
             }, 3000);
@@ -218,10 +212,8 @@
             alert('Auto daily reset enabled! System will reset automatically each day.');
         }
 
-        // Update stats every 2 seconds
         setInterval(updateStats, 2000);
         
-        // Initial stats update
         updateStats();
     </script>
 </body>
