@@ -448,7 +448,7 @@
         .display-current-number {
             font-size: 12em;
             font-weight: bold;
-            color: #e74c3c;
+            color: white;
             text-shadow: 0 0 50px rgba(231, 76, 60, 0.7);
             margin: 40px 0;
         }
@@ -1646,12 +1646,10 @@
         }
 
         function updateClientStats() {
-            // Reset all stats to zero
             clientStats.csfp = 0;
             clientStats.nonCsfp = 0;
             clientStats.ftj = 0;
             
-            // List of CSFP barangays (from your dropdown)
             const csfpBarangays = [
                 'Alasas', 'Baliti', 'Bulaon', 'Calulut', 'Del Carmen', 'Del Pilar', 
                 'Del Rosario', 'Dela Paz Norte', 'Dela Paz Sur', 'Dolores', 'Juliana', 
@@ -1662,18 +1660,15 @@
                 'Santo Niño', 'Santo Rosario', 'Sindalan', 'Telebastagan'
             ];
             
-            // ONLY count clients from the "done" queue who were actually served
             for (const service in queueData) {
                 for (const subService in queueData[service]) {
                     const doneQueue = queueData[service][subService].done;
                     
-                    // Process done queue - only count clients with status 'served'
                     doneQueue.forEach(item => {
-                        if (item.status === 'served') { // ONLY count served clients
+                        if (item.status === 'served') { 
                             if (item.clientType === 'FTJ') {
                                 clientStats.ftj++;
                             } else {
-                                // Check if barangay is in CSFP list
                                 const isCsfp = csfpBarangays.some(barangay => 
                                     item.barangay.includes(barangay) || 
                                     (item.barangay === barangay)
@@ -1686,7 +1681,6 @@
                                 }
                             }
                         }
-                        // Skip noshow_removed clients and any other status
                     });
                 }
             }
@@ -1713,10 +1707,8 @@
             const nonCsfpTotal = nonCsfpCount * 150;
             const ftjTotal = ftjCount * 150;
             
-            // Total Income = CSFP + NON-CSFP
             const totalIncome = csfpTotal + nonCsfpTotal;
             
-            // NET INCOME = Total Income - FTJ Total
             const netIncome = totalIncome - ftjTotal;
             
             document.getElementById('financial-csfp-count').textContent = csfpCount;
@@ -1736,7 +1728,6 @@
             let serviceType = '';
             let subServiceType = '';
             
-            // First, look for priority customers (Senior/PWD) with status 'waiting' OR 'noshow'
             for (const service in queueData) {
                 for (const subService in queueData[service]) {
                     const queue = queueData[service][subService].queue;
@@ -1756,7 +1747,6 @@
                 if (nextCustomer) break;
             }
             
-            // If no priority customers, look for any customer with status 'waiting' OR 'noshow'
             if (!nextCustomer) {
                 for (const service in queueData) {
                     for (const subService in queueData[service]) {
@@ -1806,14 +1796,12 @@
             }
             
             if (currentCustomer) {
-                // Mark as served before moving to done queue
-                currentCustomer.status = 'served'; // Ensure status is 'served'
+                currentCustomer.status = 'served'; 
                 queueData[serviceType][subServiceType].done.push(currentCustomer);
                 queueData[serviceType][subServiceType].queue.shift();
                 queueData[serviceType][subServiceType].current = 0;
                 localStorage.setItem('queueData', JSON.stringify(queueData));
                 
-                // Update stats since client was actually served
                 updateClientStats();
                 
                 updateEmployeeQueueList();
@@ -1842,7 +1830,6 @@
             }
             
             if (currentCustomer) {
-                // Ask for confirmation with different options
                 const userChoice = confirm(
                     `Mark ${currentCustomer.number} as No Show?\n\n` +
                     `Click OK to move to end of queue (client might still come).\n` +
@@ -1850,9 +1837,7 @@
                 );
                 
                 if (userChoice) {
-                    // Move to end of queue (client might still come)
                     currentCustomer.status = 'noshow';
-                    // Remove from front and add to end
                     const movedCustomer = queueData[serviceType][subServiceType].queue.shift();
                     queueData[serviceType][subServiceType].queue.push(movedCustomer);
                     queueData[serviceType][subServiceType].current = 0;
@@ -1864,7 +1849,6 @@
                     
                     alert(`Number ${currentCustomer.number} moved to end of queue.`);
                 } else {
-                    // Remove completely (definitely not coming) - won't count in stats
                     const removedCustomer = queueData[serviceType][subServiceType].queue.shift();
                     queueData[serviceType][subServiceType].current = 0;
                     
@@ -1875,8 +1859,6 @@
                     
                     updateEmployeeQueueList();
                     updateDisplay();
-                    // Don't update stats since this client wasn't served
-                    // updateClientStats(); // REMOVED - don't update stats for noshow_removed
                     
                     alert(`Number ${currentCustomer.number} completely removed from queue and won't count in revenue.`);
                 }
@@ -2132,18 +2114,15 @@
         window.onload = function() {
             initializeSystem();
             
-            // Fix for welcome page touch/click
             document.getElementById('welcome-page').addEventListener('click', function() {
                 showPage('service-page');
             });
             
-            // Also make the instruction text clickable
             document.querySelector('.instruction').addEventListener('click', function(e) {
-                e.stopPropagation(); // Prevent double triggering
+                e.stopPropagation(); 
                 showPage('service-page');
             });
             
-            // Enable form validation for print button
             document.getElementById('customer-form').addEventListener('input', function() {
                 const name = document.getElementById('name').value;
                 const address = document.getElementById('address').value;
@@ -2152,7 +2131,6 @@
                 
                 let isValid = name && address && barangay;
                 
-                // Additional validation for "Other" barangay selection
                 if (barangay === 'OTHER') {
                     const customBarangay = document.getElementById('custom-barangay').value;
                     const city = document.getElementById('city').value;
@@ -2169,7 +2147,6 @@
             let serviceType = '';
             let subServiceType = '';
             
-            // Find the currently called customer
             for (const service in queueData) {
                 for (const subService in queueData[service]) {
                     const queue = queueData[service][subService].queue;
@@ -2184,28 +2161,23 @@
             }
             
             if (currentCustomer) {
-                // Get display elements
                 const displayNumber = document.getElementById('display-current-number');
                 const employeeDisplay = document.getElementById('employee-display-number');
                 
-                // Store original styles
                 const originalColor = '#e74c3c';
                 const originalTextShadow = '0 0 50px rgba(231, 76, 60, 0.7)';
                 const blinkColor = '#ffeb3b';
                 const blinkTextShadow = '0 0 50px rgba(255, 235, 59, 0.9)';
                 
-                // Create blinking effect
                 let blinkCount = 0;
                 const blinkInterval = setInterval(() => {
                     if (blinkCount % 2 === 0) {
-                        // Blink ON - yellow
                         displayNumber.style.color = blinkColor;
                         displayNumber.style.textShadow = blinkTextShadow;
                         displayNumber.style.fontSize = '13em'; // Slightly larger for emphasis
                         employeeDisplay.style.color = blinkColor;
                         employeeDisplay.style.fontSize = '7em'; // Slightly larger for emphasis
                     } else {
-                        // Blink OFF - back to normal
                         displayNumber.style.color = originalColor;
                         displayNumber.style.textShadow = originalTextShadow;
                         displayNumber.style.fontSize = '12em';
@@ -2214,18 +2186,16 @@
                     }
                     blinkCount++;
                     
-                    if (blinkCount >= 8) { // Blink 4 times (on/off pairs)
+                    if (blinkCount >= 8) { 
                         clearInterval(blinkInterval);
-                        // Reset to original styles
                         displayNumber.style.color = originalColor;
                         displayNumber.style.textShadow = originalTextShadow;
                         displayNumber.style.fontSize = '12em';
                         employeeDisplay.style.color = originalColor;
                         employeeDisplay.style.fontSize = '6em';
                     }
-                }, 400); // Faster blinking for better attention
+                }, 400); 
                 
-                // Play a sound or show visual alert
                 alert(`🔔 RECALLING NUMBER: ${currentCustomer.number}\n\nPlease proceed to the counter.`);
             } else {
                 alert('No customer is currently being called');
@@ -2251,7 +2221,6 @@
             }
             
             if (currentCustomer) {
-                // Ask for confirmation with different options
                 const userChoice = confirm(
                     `Mark ${currentCustomer.number} as No Show?\n\n` +
                     `Click OK to move to end of queue (client might still come).\n` +
@@ -2259,9 +2228,7 @@
                 );
                 
                 if (userChoice) {
-                    // Move to end of queue (client might still come)
                     currentCustomer.status = 'noshow';
-                    // Remove from front and add to end
                     const movedCustomer = queueData[serviceType][subServiceType].queue.shift();
                     queueData[serviceType][subServiceType].queue.push(movedCustomer);
                     queueData[serviceType][subServiceType].current = 0;
@@ -2273,11 +2240,9 @@
                     
                     alert(`Number ${currentCustomer.number} moved to end of queue.`);
                 } else {
-                    // Remove completely (definitely not coming)
                     const removedCustomer = queueData[serviceType][subServiceType].queue.shift();
                     queueData[serviceType][subServiceType].current = 0;
                     
-                    // Add to done list with noshow status for tracking
                     removedCustomer.status = 'noshow_removed';
                     queueData[serviceType][subServiceType].done.push(removedCustomer);
                     
@@ -2285,7 +2250,7 @@
                     
                     updateEmployeeQueueList();
                     updateDisplay();
-                    updateClientStats(); // Update stats since customer is removed
+                    updateClientStats(); 
                     
                     alert(`Number ${currentCustomer.number} completely removed from queue.`);
                 }
