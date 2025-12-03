@@ -319,6 +319,149 @@ function addPageCredits() {
     }
 }
 
+// Add this function to your copyright protection section
+function addSystemCreditsFooter() {
+    // Check if already exists
+    if (document.getElementById('system-credits')) return;
+    
+    const creditsFooter = document.createElement('div');
+    creditsFooter.id = 'system-credits';
+    creditsFooter.style.cssText = `
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(135deg, #2c3e50, #34495e);
+        color: white;
+        padding: 5px 10px;
+        font-size: 11px;
+        text-align: center;
+        z-index: 9998;
+        border-top: 1px solid rgba(255,255,255,0.1);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        pointer-events: none;
+        font-family: Arial, sans-serif;
+    `;
+    
+    creditsFooter.innerHTML = `
+        <span>Queuing System v1.0 © ${DEVELOPMENT_YEAR} ${COPYRIGHT_OWNER}</span>
+        <span>Developer: Engr. Yumul Larren Joy D.</span>
+        <span>Licensed to ${SYSTEM_LOCATION}</span>
+    `;
+    
+    document.body.appendChild(creditsFooter);
+    
+    // Add hidden encoded credits
+    const backupCredits = document.createElement('div');
+    backupCredits.id = 'backup-credits';
+    backupCredits.style.display = 'none';
+    backupCredits.innerHTML = `
+        <!-- 
+        QUEUING_SYSTEM_INFO_START
+        System: Municipal Queuing Management System
+        Version: 1.0
+        Developer: ${COPYRIGHT_OWNER}, Computer Engineer
+        Copyright: © ${DEVELOPMENT_YEAR} ${COPYRIGHT_OWNER}. All Rights Reserved.
+        Client: ${SYSTEM_LOCATION}
+        Deployment: Office of the Mayor - Permits Section
+        Type: Queue Management System for Mayor's Permit & Clearance
+        Features: Priority Queuing, FTJ Support, Financial Reporting
+        QUEUING_SYSTEM_INFO_END
+        -->
+    `;
+    
+    document.body.appendChild(backupCredits);
+}
+
+// Update the protectCopyright function to include the footer
+function protectCopyright() {
+    // 1. Console warning
+    console.log(`%c
+    ╔══════════════════════════════════════════════════╗
+    ║           QUEUING SYSTEM - COPYRIGHT             ║
+    ╠══════════════════════════════════════════════════╣
+    ║  Owner: ${COPYRIGHT_OWNER}      ║
+    ║  Developed: ${DEVELOPMENT_YEAR}                            ║
+    ║  Location: ${SYSTEM_LOCATION}   ║
+    ║                                                  ║
+    ║  This system was solely developed by:            ║
+    ║  ${COPYRIGHT_OWNER}      ║
+    ║  Computer Engineer                              ║
+    ║                                                  ║
+    ║  WARNING: This software is the intellectual      ║
+    ║  property of ${COPYRIGHT_OWNER} ║
+    ║  Unauthorized modifications or claiming of      ║
+    ║  ownership is strictly prohibited.              ║
+    ╚══════════════════════════════════════════════════╝
+    `, "color: #e74c3c; font-weight: bold;");
+    
+    // 2. Add watermark to all pages
+    addCopyrightWatermark();
+    
+    // 3. Add system credits footer (NEW)
+    addSystemCreditsFooter();
+    
+    // 4. Check for tampering
+    checkForTampering();
+    
+    // 5. Add credit footer (hover version)
+    addCreditFooter();
+    
+    // 6. Add page credits
+    addPageCredits();
+    
+    // 7. Make copyright info globally accessible (read-only)
+    Object.defineProperty(window, 'systemCredits', {
+        value: {
+            developer: COPYRIGHT_OWNER,
+            year: DEVELOPMENT_YEAR,
+            location: SYSTEM_LOCATION,
+            position: "Computer Engineer",
+            getInfo: function() {
+                return `Queuing System v1.0 - Developed by ${this.developer} (${this.year})`;
+            }
+        },
+        writable: false,
+        configurable: false
+    });
+    
+    // 8. Override console.log to always show credit
+    const originalLog = console.log;
+    console.log = function(...args) {
+        if (args[0] && typeof args[0] === 'string' && !args[0].includes('QUEUING SYSTEM')) {
+            args[0] = `[System by: ${COPYRIGHT_OWNER}] ${args[0]}`;
+        }
+        originalLog.apply(console, args);
+    };
+}
+
+// Update the checkForTampering function to protect the new footer
+function checkForTampering() {
+    // Check for attempts to remove copyright
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.removedNodes) {
+                mutation.removedNodes.forEach(function(node) {
+                    if (node.id === 'copyright-footer' || node.id === 'copyright-watermark' || 
+                        node.id === 'splash-credit' || node.id === 'system-credits' || 
+                        node.id === 'backup-credits') {
+                        console.warn('Tampering detected: Attempt to remove copyright notice');
+                        // Re-add the element
+                        if (node.id === 'copyright-footer') addCreditFooter();
+                        if (node.id === 'copyright-watermark') addCopyrightWatermark();
+                        if (node.id === 'splash-credit') showSplashCredit();
+                        if (node.id === 'system-credits') addSystemCreditsFooter();
+                    }
+                });
+            }
+        });
+    });
+    
+    observer.observe(document.body, { childList: true, subtree: true });
+}
+
 // ============================================
 // QUEUING SYSTEM FUNCTIONS
 // ============================================
