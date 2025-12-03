@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Queuing System</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Welcome Page -->
+    <div id="welcome-page" class="page active">
+        <div class="client-body">
+            <div class="welcome-container">
+                <h1>Get Your Number Here</h1>
+                <p class="instruction">Touch anywhere to continue</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Service Page -->
+    <div id="service-page" class="page">
+        <div class="client-body">
+            <div class="client-container">
+                <h2>Select Service</h2>
+                <div class="button-grid">
+                    <button class="service-btn" onclick="selectService('Mayors Working Permit')">
+                        Mayors Working Permit
+                    </button>
+                    <button class="service-btn" onclick="selectService('Mayors Clearance')">
+                        Mayors Clearance
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Subservice Page -->
+    <div id="subservice-page" class="page">
+        <div class="client-body">
+            <div class="client-container">
+                <h2 id="subservice-title">Select Option</h2>
+                <div class="button-grid">
+                    <button class="service-btn" onclick="selectSubService('Newly Hired')">
+                        Newly Hired
+                    </button>
+                    <button class="service-btn" onclick="selectSubService('Renew')">
+                        Renew
+                    </button>
+                </div>
+                <button class="back-btn" onclick="goBack()">Back</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Client Type Page -->
+    <div id="client-type-page" class="page">
+        <div class="client-body">
+            <div class="client-container">
+                <h2>Select Client Type</h2>
+                <div class="button-grid">
+                    <button class="service-btn priority-btn" onclick="selectClientType('Senior/PWD')">
+                        👵 Senior Citizen / ♿ PWD
+                    </button>
+                    <button class="service-btn" onclick="selectClientType('Regular')">
+                        Regular Client
+                    </button>
+                    <button class="service-btn ftj-btn" onclick="selectClientType('FTJ')">
+                        🎓 First Time Job Seeker
+                    </button>
+                </div>
+                <button class="back-btn" onclick="goBack()">Back</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form Page -->
+    <div id="form-page" class="page">
+        <div class="client-body">
+            <div class="client-container">
+                <h2>Please Fill Up the Form</h2>
+                <form id="customer-form">
+                    <div class="form-group">
+                        <label for="name">Full Name:</label>
+                        <input type="text" id="name" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="address">Address:</label>
+                        <input type="text" id="address" name="address" required placeholder="HOUSE NO., STREET, VILLAGE">
+                    </div>
+                    <div class="form-group">
+                        <label for="barangay">Barangay:</label>
+                        <select id="barangay" name="barangay" required onchange="toggleCityInput()">
+                            <option value="">Select Barangay</option>
+                            <option value="Alasas">Alasas</option>
+                            <option value="Baliti">Baliti</option>
+                            <option value="Bulaon">Bulaon</option>
+                            <option value="Calulut">Calulut</option>
+                            <option value="Del Carmen">Del Carmen</option>
+                            <option value="Del Pilar">Del Pilar</option>
+                            <option value="Del Rosario">Del Rosario</option>
+                            <option value="Dela Paz Norte">Dela Paz Norte</option>
+                            <option value="Dela Paz Sur">Dela Paz Sur</option>
+                            <option value="Dolores">Dolores</option>
+                            <option value="Juliana">Juliana</option>
+                            <option value="Lara">Lara</option>
+                            <option value="Lourdes">Lourdes</option>
+                            <option value="Magliman">Magliman</option>
+                            <option value="Maimpis">Maimpis</option>
+                            <option value="Malino">Malino</option>
+                            <option value="Malpitic">Malpitic</option>
+                            <option value="Pandaras">Pandaras</option>
+                            <option value="Panipuan">Panipuan</option>
+                            <option value="Pulung Bulu">Pulung Bulu</option>
+                            <option value="Quebiauan">Quebiauan</option>
+                            <option value="Saguin">Saguin</option>
+                            <option value="San Agustin">San Agustin</option>
+                            <option value="San Felipe">San Felipe</option>
+                            <option value="San Isidro">San Isidro</option>
+                            <option value="San Jose">San Jose</option>
+                            <option value="San Juan">San Juan</option>
+                            <option value="San Nicolas">San Nicolas</option>
+                            <option value="San Pedro">San Pedro</option>
+                            <option value="Santa Lucia">Santa Lucia</option>
+                            <option value="Santa Teresita">Santa Teresita</option>
+                            <option value="Santo Niño">Santo Niño</option>
+                            <option value="Santo Rosario">Santo Rosario</option>
+                            <option value="Sindalan">Sindalan</option>
+                            <option value="Telebastagan">Telebastagan</option>
+                            <option value="OTHER">Other (Outside SF Pampanga)</option>
+                        </select>
+
+                        <div id="outside-fields" style="display: none;">
+                            <div class="form-group">
+                                <label for="custom-barangay">Barangay (Outside SF):</label>
+                                <input type="text" id="custom-barangay" name="custom-barangay" placeholder="Enter your barangay">
+                            </div>
+                            <div class="form-group">
+                                <label for="city">City/Municipality:</label>
+                                <input type="text" id="city" name="city" placeholder="Enter your city/municipality">
+                            </div>
+                            <div class="form-group">
+                                <label for="province">Province:</label>
+                                <input type="text" id="province" name="province" placeholder="Enter your province">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="button-group">
+                        <button type="button" class="back-btn" onclick="goBack()">Back</button>
+                        <button type="button" id="print-btn" class="print-btn" disabled onclick="generateTicket()">
+                            Print Number
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ticket Page -->
+    <div id="ticket-page" class="page">
+        <div class="client-body">
+            <div class="client-container">
+                <div class="ticket-container">
+                    <div class="ticket" id="printed-ticket">
+                        <div class="ticket-header">
+                            <h2>OFFICE OF THE MAYOR</h2>
+                            <p>Queuing Ticket</p>
+                        </div>
+                        <div class="ticket-body">
+                            <div class="ticket-number">
+                                <span id="queue-number">A001</span>
+                            </div>
+                            <div class="ticket-details">
+                                <p><strong>Service:</strong> <span id="ticket-service"></span></p>
+                                <p><strong>Type:</strong> <span id="ticket-type"></span></p>
+                                <p><strong>Client Type:</strong> <span id="ticket-client-type"></span></p>
+                                <p><strong>Name:</strong> <span id="ticket-name"></span></p>
+                                <p><strong>Barangay:</strong> <span id="ticket-barangay"></span></p>
+                                <p><strong>Date:</strong> <span id="ticket-date"></span></p>
+                            </div>
+                        </div>
+                        <div class="ticket-footer">
+                            <p>Please wait for your number to be called</p>
+                        </div>
+                    </div>
+                    <button class="home-btn" onclick="goToWelcome()">Get Another Number</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Display Page -->
+    <div id="display-page" class="page">
+        <div class="display-body">
+            <div class="display-header">
+                <h1>NOW SERVING</h1>
+            </div>
+
+            <div class="current-serving">
+                <div class="display-current-number" id="display-current-number">---</div>
+                <div class="display-current-service" id="display-current-service">Please wait for your number to be called</div>
+            </div>
+
+            <div class="display-queue-list">
+                <h3>Next Numbers</h3>
+                <div class="display-next-numbers" id="display-next-numbers">
+                    <!-- Next numbers will be populated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Employee Page -->
+    <div id="employee-page" class="page">
+        <div class="employee-body">
+            <div class="employee-header">
+                <h1>EMPLOYEE CONTROL PANEL</h1>
+            </div>
+            
+            <div class="employee-main">
+                <div class="employee-current-section">
+                    <div class="employee-current-number">
+                        <h2>NOW SERVING</h2>
+                        <div class="employee-display-number" id="employee-display-number">---</div>
+                        <p id="employee-current-service">No one is currently being served</p>
+                    </div>
+
+                    <div class="employee-control-panel">
+                        <div class="employee-control-buttons">
+                            <button class="employee-control-btn employee-done-btn" onclick="markDone()">
+                                ✅ Done
+                            </button>
+                            <button class="employee-control-btn employee-call-btn" onclick="callNext()">
+                                🔔 Call Next
+                            </button>
+                            <button class="employee-control-btn employee-recall-btn" onclick="recallCurrent()">
+                                🔄 Recall
+                            </button>
+                            <button class="employee-control-btn employee-noshow-btn" onclick="markNoShow()">
+                                ❌ No Show
+                            </button>
+                        </div>
+
+                        <div class="reset-section">
+                            <button class="reset-btn" onclick="showResetConfirmation()">
+                                🔄 Reset System for Tomorrow
+                            </button>
+                            <div class="confirm-reset" id="confirm-reset">
+                                <p>Are you sure you want to reset the system? This will clear all queue data and start fresh.</p>
+                                <div class="confirm-buttons">
+                                    <button class="confirm-yes" onclick="resetSystem()">Yes, Reset</button>
+                                    <button class="confirm-no" onclick="hideResetConfirmation()">Cancel</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="employee-queue-section">
+                    <div class="employee-queue-list">
+                        <h3>Queue List</h3>
+                        <div id="employee-queue-list">
+                            <!-- Queue items will be populated here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Page -->
+    <div id="admin-page" class="page">
+        <div class="admin-body">
+            <div class="admin-container">
+                <h1>ADMIN PANEL</h1>
+                
+                <div class="admin-stats">
+                    <h3>Client Statistics</h3>
+                    <div class="admin-stats-grid">
+                        <div class="admin-stat-card">
+                            <h4>CSFP</h4>
+                            <div class="admin-stat-value" id="csfp-count">0</div>
+                        </div>
+                        <div class="admin-stat-card">
+                            <h4>NON-CSFP</h4>
+                            <div class="admin-stat-value" id="non-csfp-count">0</div>
+                        </div>
+                        <div class="admin-stat-card">
+                            <h4>FTJ</h4>
+                            <div class="admin-stat-value" id="ftj-count">0</div>
+                        </div>
+                        <div class="admin-stat-card">
+                            <h4>Total Clients</h4>
+                            <div class="admin-stat-value" id="total-clients">0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="admin-buttons">
+                    <button class="admin-reset-btn" onclick="showAdminResetConfirmation()">
+                        Reset System
+                    </button>
+                    <button class="admin-reset-btn admin-auto-reset-btn" onclick="toggleAutoReset()">
+                        Auto Reset: <span id="auto-reset-status">OFF</span>
+                    </button>
+                </div>
+
+                <button class="admin-hidden-btn" onclick="showFinancialAdmin()">
+                    Financial Admin Panel
+                </button>
+
+                <div class="admin-confirm-dialog" id="admin-confirm-reset">
+                    <p>Are you sure you want to reset the system? This will clear all queue data and start fresh.</p>
+                    <div class="admin-confirm-buttons">
+                        <button class="admin-confirm-btn admin-confirm-yes" onclick="adminResetSystem()">Yes, Reset</button>
+                        <button class="admin-confirm-btn admin-confirm-no" onclick="hideAdminResetConfirmation()">Cancel</button>
+                    </div>
+                </div>
+
+                <div class="admin-success-message" id="admin-success-message">
+                    System has been reset successfully!
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Financial Admin Page -->
+    <div id="financial-admin-page" class="page">
+        <div class="admin-body">
+            <div class="admin-container">
+                <h1>FINANCIAL ADMIN PANEL</h1>
+                
+                <div class="admin-stats">
+                    <h3>Revenue Summary</h3>
+                    <table class="financial-table">
+                        <thead>
+                            <tr>
+                                <th>Category</th>
+                                <th>Count</th>
+                                <th>Rate</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>CSFP</td>
+                                <td id="financial-csfp-count">0</td>
+                                <td>₱150</td>
+                                <td id="financial-csfp-total">₱0</td>
+                            </tr>
+                            <tr>
+                                <td>NON-CSFP</td>
+                                <td id="financial-non-csfp-count">0</td>
+                                <td>₱150</td>
+                                <td id="financial-non-csfp-total">₱0</td>
+                            </tr>
+                            <tr class="financial-total">
+                                <td colspan="3">Total Income</td>
+                                <td id="financial-total-income">₱0</td>
+                            </tr>
+                            <tr>
+                                <td>FTJ</td>
+                                <td id="financial-ftj-count">0</td>
+                                <td>₱150</td>
+                                <td id="financial-ftj-total">₱0</td>
+                            </tr>
+                            <tr class="financial-total">
+                                <td colspan="3">NET INCOME</td>
+                                <td id="financial-net-income">₱0</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <button class="admin-reset-btn" onclick="goToAdmin()">
+                    Back to Admin Panel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Financial Login Page -->
+    <div id="financial-login-page" class="page">
+        <div class="admin-body">
+            <div class="login-container">
+                <h2>Financial Admin Login</h2>
+                <input type="password" id="admin-password" class="login-input" placeholder="Enter Admin Password">
+                <button class="login-btn" onclick="verifyFinancialAccess()">Login</button>
+                <div class="login-error" id="login-error">
+                    Invalid password. Please try again.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation Menu -->
+    <div id="nav-menu">
+        <button class="nav-btn" onclick="showPage('welcome-page')">Client Kiosk</button>
+        <button class="nav-btn" onclick="showPage('display-page')">Display Monitor</button>
+        <button class="nav-btn" onclick="showPage('employee-page')">Employee Panel</button>
+        <button class="nav-btn" onclick="showPage('admin-page')">Admin Panel</button>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
